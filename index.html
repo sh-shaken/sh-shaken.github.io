@@ -1,0 +1,30 @@
+<html>
+<head>
+  <link rel="stylesheet" href="css.css">
+</head>
+<form name="login_form">
+<form action="action_page.php" method="post">
+  <div class="imgcontainer">
+    <img src="社会科研究部ロゴ.png" alt="Avatar" class="avatar">
+  </div>
+
+  <div class="container">
+    <label for="uname"><b>番号札の番号(例: 0001 1234)</b></label>
+    <input type="text" placeholder="番号を入力" name="uname" required>
+
+    <label for="psw"><b>パスワード(4桁の数字)</b></label>
+    <input type="password" placeholder="パスワードを入力" name="psw" required>
+
+    <button type="button" onClick="nextPage();">心理テストの結果を確認する！</button>
+　※結果の反映に数時間かかる場合がございます。お問い合わせはこちら→sh.shaken35139@gmail.com
+  </div>
+</form>
+<script language="JavaScript" type="text/javascript">
+            function nextPage() {
+                uname = document.login_form.uname.value //ID枠に入力された値（文字列）を定義
+                psw = document.login_form.psw.value; //Password枠に入力された値（文字列）を定義
+                location.href = uname + psw + ".pdf"; //リンク先URLを作成
+            }
+ </script>
+
+</html>
