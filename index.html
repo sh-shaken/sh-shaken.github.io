@@ -7,9 +7,10 @@
   <div class="imgcontainer">
     <img src="社会科研究部ロゴ.png" alt="Avatar" class="avatar">
   </div>
+  <p>おみくじの結果</p>
 <script language="JavaScript" type="text/javascript">
-  const messages = ['20011',
-'20021',
+const result = document.querySelector("p")
+const omikuji =['20021',
 '20023',
 '20029',
 '20047',
@@ -7336,8 +7337,10 @@
 '99929',
 '99961',
 '99971',
-'99989',
-'99991',];
+'99989','99991',]
+const number = Math.floor(Math.random() * omikuji.length);
+result.textContent = omikuji[number]
+
 
 const messageNo = Math.floor( Math.random() * messages.length);
 console.log(messages[messageNo]);
