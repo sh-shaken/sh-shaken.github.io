@@ -71,8 +71,8 @@
   <div class="container">
     <h1>ログイン</h1>
     <form onsubmit="redirectToPage(event)">
-      <label for="number">番号 (1〜5桁の半角数字):</label>
-      <input type="text" id="number" name="number" required pattern="^\d{1,5}$" title="1〜5桁の半角数字を入力してください">
+      <label for="number">番号 (1〜4桁の半角数字):</label>
+      <input type="text" id="number" name="number" required pattern="^\d{1,4}$" title="1〜4桁の半角数字を入力してください">
 
       <label for="password">パスワード (4桁の半角数字):</label>
       <input type="text" id="password" name="password" required pattern="^\d{4}$" title="4桁の半角数字を入力してください">
@@ -96,7 +96,7 @@
     const passwordValid = /^\d{4}$/.test(password);
 
     if (!numberValid) {
-      alert("番号は1〜5桁の半角数字で入力してください。");
+      alert("番号は1〜4桁の半角数字で入力してください。");
       return;
     }
 
