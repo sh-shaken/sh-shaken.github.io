@@ -81,34 +81,38 @@
     </form>
   </div>
 
-  <script>
-    function redirectToPage(event) {
-      event.preventDefault();
+ <script>
+  function redirectToPage(event) {
+    event.preventDefault(); // フォーム送信を止める
 
-      const numberInput = document.getElementById('number');
-      const passwordInput = document.getElementById('password');
+    const numberInput = document.getElementById('number');
+    const passwordInput = document.getElementById('password');
 
-      const numberRaw = numberInput.value;
-      const password = passwordInput.value;
+    let number = numberInput.value.trim();
+    const password = passwordInput.value.trim();
 
-      const numberValid = /^\d{1,5}$/.test(numberRaw);
-      const passwordValid = /^\d{4}$/.test(password);
+    // 入力内容の正規表現チェック
+    const numberValid = /^\d{1,5}$/.test(number);
+    const passwordValid = /^\d{4}$/.test(password);
 
-      if (!numberValid) {
-        alert("番号は1〜5桁の半角数字で入力してください。");
-        return;
-      }
-
-      if (!passwordValid) {
-        alert("パスワードは4桁の半角数字で入力してください。");
-        return;
-      }
-
-      const number = numberRaw.padStart(5, '0');
-      const filename = number + password + ".html";
-
-      window.location.href = filename;
+    if (!numberValid) {
+      alert("番号は1〜5桁の半角数字で入力してください。");
+      return;
     }
+
+    if (!passwordValid) {
+      alert("パスワードは4桁の半角数字で入力してください。");
+      return;
+    }
+
+    // 先頭の0を削除
+    number = number.replace(/^0+/, '');
+
+    const filename = number + password + ".html";
+    window.location.href = filename;
+  }
+</script>
+
   </script>
 </body>
 </html>
