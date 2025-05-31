@@ -54,7 +54,7 @@
     }
 
     button {
-      margin-top: 1.5em;
+      margin-top: 1em;
       padding: 0.8em 1.5em;
       font-size: 1em;
       background-color: #28a745;
@@ -69,6 +69,15 @@
     button:hover {
       background-color: #218838;
     }
+
+    .copy-button {
+      background-color: #007bff;
+      margin-top: 0.5em;
+    }
+
+    .copy-button:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>
@@ -77,6 +86,8 @@
 
     <div class="label">番号:</div>
     <div class="code" id="number">----</div>
+
+    <button class="copy-button" onclick="copyNumber()">番号をコピーする</button>
 
     <p class="note">この番号と、自分で決めた4桁のパスワードを覚えてください。</p>
     <p class="note">ログイン画面でその2つを入力すると、専用ページに移動できます。</p>
@@ -88,7 +99,18 @@
     }
 
     const number = generateNumber();
-    document.getElementById('number').textContent = number;
+    const numberElem = document.getElementById('number');
+    numberElem.textContent = number;
+
+    function copyNumber() {
+      navigator.clipboard.writeText(number)
+        .then(() => {
+          alert("番号をコピーしました: " + number);
+        })
+        .catch(() => {
+          alert("コピーに失敗しました。手動でコピーしてください。");
+        });
+    }
   </script>
 </body>
 </html>
