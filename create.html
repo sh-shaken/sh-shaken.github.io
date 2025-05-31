@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>番号を発行</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background-color: #ffffff;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    h1 {
+      margin-bottom: 1em;
+      color: #333;
+    }
+
+    .label {
+      font-size: 1em;
+      color: #555;
+      margin-top: 1em;
+    }
+
+    .code {
+      font-size: 2em;
+      margin: 0.5em 0 1.2em 0;
+      font-weight: bold;
+      color: #007BFF;
+    }
+
+    .note {
+      font-size: 0.9em;
+      color: #777;
+    }
+
+    button {
+      margin-top: 1.5em;
+      padding: 0.8em 1.5em;
+      font-size: 1em;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>あなたの番号が発行されました！</h1>
+
+    <div class="label">番号:</div>
+    <div class="code" id="number">----</div>
+
+    <p class="note">この番号と、自分で決めた4桁のパスワードを覚えてください。</p>
+    <p class="note">ログイン画面でその2つを入力すると、専用ページに移動できます。</p>
+  </div>
+
+  <script>
+    function generateNumber() {
+      return String(Math.floor(Math.random() * (9999 - 2001 + 1)) + 2001);
+    }
+
+    const number = generateNumber();
+    document.getElementById('number').textContent = number;
+  </script>
+</body>
+</html>
