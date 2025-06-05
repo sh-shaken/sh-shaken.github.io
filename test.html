@@ -18,40 +18,43 @@
   <p id="status"></p>
 
   <script>
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwVBd_sjZKMXwp6NdTsHyo6OGCqFmzMblWF-JE7Zt2V1mYRkq6Hb5sn4FGTbvUp8Gs1/exec';
-const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
-    
-async function handleLogin() {
-  const userId = document.getElementById('userId').value.trim();
-  const password = document.getElementById('password').value.trim();
-  const status = document.getElementById('status');
-  status.textContent = "認証中...";
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwVBd_sjZKMXwp6NdTsHyo6OGCqFmzMblWF-JE7Zt2V1mYRkq6Hb5sn4FGTbvUp8Gs1/exec';
+    const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
 
-  try {
-    const url = `${GAS_URL}?id=${encodeURIComponent(userId)}&pw=${encodeURIComponent(password)}`;
-    const response = await fetch(url);
-    const result = await response.json();
+    async function handleLogin() {
+      const userId = document.getElementById('userId').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const status = document.getElementById('status');
+      status.textContent = "認証中...";
 
-if (result.success !== true) {
-  status.textContent = "IDまたはパスワードが一致しません。";
-  return;
-}
+      try {
+        const url = `${GAS_URL}?id=${encodeURIComponent(userId)}&pw=${encodeURIComponent(password)}`;
+        const response = await fetch(url);
+        const result = await response.json();
 
+        console.log("レスポンス:", result); // デバッグ用
 
-    status.textContent = "認証成功。PDF生成中...";
-    generatePDF(result);
-  } catch (error) {
-    console.error("通信エラー:", error);
-    status.textContent = "サーバーとの通信に失敗しました。";
-  }
-}
-if (!userData || !userData.success) {
-  status.textContent = "ユーザーデータが無効です。";
-  return;
-}
+        if (result.success !== true) {
+          status.textContent = "IDまたはパスワードが一致しません。";
+          return;
+        }
+
+        status.textContent = "認証成功。PDF生成中...";
+        generatePDF(result);
+      } catch (error) {
+        console.error("通信エラー:", error);
+        status.textContent = "サーバーとの通信に失敗しました。";
+      }
+    }
 
     async function generatePDF(userData) {
       const status = document.getElementById('status');
+
+      if (!userData || !userData.success) {
+        status.textContent = "ユーザーデータが無効です。";
+        return;
+      }
+
       try {
         const existingPdfBytes = await fetch(PDF_TEMPLATE_URL).then(res => res.arrayBuffer());
         const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
