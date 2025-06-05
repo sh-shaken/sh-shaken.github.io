@@ -19,7 +19,8 @@
 
   <script>
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzLZ-Kmr0EZZIEbqZ-kvBJKOvbiGjWgeUzCsGo1v1_tscVBW4fpnvGiHPe-P29_EJ0Z/exec';
-
+const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
+    
 async function handleLogin() {
   const userId = document.getElementById('userId').value.trim();
   const password = document.getElementById('password').value.trim();
@@ -43,8 +44,6 @@ async function handleLogin() {
     status.textContent = "サーバーとの通信に失敗しました。";
   }
 }
-
-    }
 
     async function generatePDF(userData) {
       const status = document.getElementById('status');
