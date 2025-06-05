@@ -1,21 +1,154 @@
-<!doctypehtml><html lang=ja><meta charset=UTF-8><meta content="width=device-width,initial-scale=1"name=viewport><title>番号を発行</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap"rel=stylesheet><style>*{box-sizing:border-box}body{font-family:'Noto Sans JP',sans-serif;background-color:#f8f9fa;margin:0;padding:0;display:flex;justify-content:center;align-items:center;height:100vh}.container{background-color:#fff;padding:2em;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.1);text-align:center;max-width:400px;width:90%}h1{margin-bottom:1em;color:#333}.label{font-size:1em;color:#555;margin-top:1em}.code{font-size:2em;margin:.5em 0 1.2em 0;font-weight:700;color:#007bff}.note{font-size:.9em;color:#777}button{margin-top:1em;padding:.8em 1.5em;font-size:1em;color:#fff;border:none;border-radius:6px;cursor:pointer;transition:background-color .3s ease;width:100%}.copy-button{background-color:rgba(0,123,255,.5)}.copy-button:hover{background-color:rgba(0,86,179,1)}.test-button{background-color:#6f42c1}.test-button:hover{background-color:#5a32a3}</style><div class=container><h1>あなたの番号が発行されました！</h1><div class=label>番号:</div><div class=code id=number>----</div><button class=copy-button onclick=copyNumber()>番号をコピーする</button><p class=note>※文化祭会場で番号札が既に配られている場合、この番号は必要ありません。<p class=note>※この番号は絶対に覚えてください。覚えましたら、心理テストにお進みください↓</p><button class=test-button onclick=goToTest()>心理テストを受ける！</button></div><script>function generateNumber() {
-      return String(Math.floor(Math.random() * (9999 - 2001 + 1)) + 2001);
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>番号を発行</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
     }
 
-    const number = generateNumber();
-    const numberElem = document.getElementById('number');
-    numberElem.textContent = number;
-
-    function copyNumber() {
-      navigator.clipboard.writeText(number)
-        .then(() => {
-          alert("番号をコピーしました: " + number);
-        })
-        .catch(() => {
-          alert("コピーに失敗しました。手動でコピーしてください。");
-        });
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
 
-    function goToTest() {
-      window.location.href = "https://youtu.be/dQw4w9WgXcQ?si=AEBve2t2CvHefwl4"; // ← ここを実際のURLに変更してください
-    }</script>
+    .container {
+      background-color: #ffffff;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    h1 {
+      margin-bottom: 1em;
+      color: #333;
+    }
+
+    .label {
+      font-size: 1em;
+      color: #555;
+      margin-top: 1em;
+    }
+
+    .code {
+      font-size: 2em;
+      margin: 0.5em 0 1.2em 0;
+      font-weight: bold;
+      color: #007BFF;
+    }
+
+    .note {
+      font-size: 0.9em;
+      color: #777;
+    }
+
+    button {
+      margin-top: 1em;
+      padding: 0.8em 1.5em;
+      font-size: 1em;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+    }
+
+    .copy-button {
+    background-color: rgba(0, 123, 255, 0.5);
+    }
+    .copy-button:hover {
+      background-color: rgba(0, 86, 179, 1.0);
+    }
+
+    .test-button {
+      background-color: #6f42c1;
+    }
+
+    .test-button:hover {
+      background-color: #5a32a3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>あなたの番号が発行されました！</h1>
+
+    <div class="label">番号:</div>
+    <div class="code" id="number">----</div>
+
+    <button class="copy-button" onclick="copyNumber()">番号をコピーする</button>
+
+        <p class="note">※文化祭会場で番号札が既に配られている場合、この番号は必要ありません。</p>
+        <p class="note">※この番号は絶対に覚えてください。覚えましたら、心理テストにお進みください↓</p>
+    
+    <button class="test-button" onclick="goToTest()">心理テストを受ける！</button>
+
+
+  </div>
+
+    <script>
+    async function fetchUsedNumbers() {
+      const usedURL = 'https://script.google.com/macros/s/AKfycbylN94TA9Mxxo4xIXnXMnbNmh3RjgytHQMGb1QsASQyBHpem5wJ-mLMT8PDmcAWaQXc/exec';
+      try {
+        const response = await fetch(usedURL);
+        if (!response.ok) throw new Error("ネットワークエラー");
+        return await response.json();
+      } catch (e) {
+        console.warn("使用済み番号の取得に失敗しました。ローカルで番号を生成します。");
+        return []; // 失敗したら空の配列扱い
+      }
+    }
+
+    function generateCandidateNumbers() {
+      const numbers = [];
+
+      for (let i = 1000; i <= 1500; i++) numbers.push(String(i));
+      for (let i = 2001; i <= 9999; i++) numbers.push(String(i));
+
+      return numbers;
+    }
+
+function getRandomAvailableNumber(candidates, used) {
+  const normalizedUsed = used.map(n => String(n).trim().replace(/^0+/, ""));
+  const available = candidates.filter(n => !normalizedUsed.includes(n));
+  if (available.length === 0) return null;
+
+  const randomIndex = Math.floor(Math.random() * available.length);
+  return available[randomIndex];
+}
+
+
+    (async () => {
+      const usedNumbers = await fetchUsedNumbers();
+      const candidates = generateCandidateNumbers();
+      const number = getRandomAvailableNumber(candidates, usedNumbers);
+
+      const numberDisplay = document.getElementById('number');
+      if (!number) {
+        numberDisplay.textContent = "番号が取得できませんでした";
+        return;
+      }
+
+      numberDisplay.textContent = number;
+
+      window.copyNumber = function () {
+        navigator.clipboard.writeText(number)
+          .then(() => alert("番号をコピーしました: " + number));
+      };
+    })();
+  </script>
+</body>
+</html>
