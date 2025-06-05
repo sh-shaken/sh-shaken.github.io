@@ -19,8 +19,8 @@
   <p id="status"></p>
 
   <script>
-    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1ptcUwYY4CNqM2Z2UC4Ej-SagjmcOA6R15OKkju9-d-k/edit?usp=sharingl';
-    const PDF_TEMPLATE_URL = 'https://github.com/sh-shaken/sh-shaken.github.io/blob/main/%E7%B5%90%E6%9E%9C%E7%94%A8%E7%B4%99%E6%9C%AC%E7%89%A9%E5%8E%9F%E6%9C%ACweb%E7%94%A8.pdf'; // GitHub PagesやDrive直リンクなど
+    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSWkpUHsWxiEASWM8KJm_d1ElQ9UJJ7m5SC4d2gjzAgyMQsrj7uWKyvXYVjm7medKzcmC7PFynazGDj/pubhtml';
+    const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf'; // GitHub PagesやDrive直リンクなど
 
     function handleLogin() {
       const userId = document.getElementById('userId').value.trim();
@@ -28,19 +28,21 @@
       const status = document.getElementById('status');
       status.textContent = "認証中...";
 
-      Tabletop.init({
-        key: SHEET_URL,
-        simpleSheet: true,
-        callback: function(data) {
-          const row = data.find(r => r['番号'] === userId && r['パスワード'] === password);
-          if (!row) {
-            status.textContent = "番号またはパスワードが一致しません。";
-            return;
-          }
-          status.textContent = "認証成功。PDF生成中...";
-          generatePDF(row);
+      // 認証処理
+    Tabletop.init({
+      key: SHEET_URL,
+      simpleSheet: true,
+      callback: function(data) {
+        const row = data.find(r => r['ID'] === userId && r['PW'] === password);
+        if (!row) {
+          status.textContent = "IDまたはパスワードが一致しません。";
+          return;
         }
-      });
+        status.textContent = "認証成功。PDF生成中...";
+        generatePDF(row);
+  }
+});
+
     }
 
     async function generatePDF(userData) {
@@ -51,19 +53,21 @@
         const page = pdfDoc.getPage(0);
         const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
 
-        const entries = ['氏名', '日付', '点数1', '点数2', '点数3', '評価', 'コメント', '備考']; // ← D〜K列に対応するラベル
-        const startY = 700;
+        // PDFへの書き込み部分
+const entries = ['左脳', '右脳', '学生※忘れずに', 'CP', 'NP', 'A', 'FC', 'AC', '結果受取'];
+const startY = 700;
 
-        entries.forEach((label, i) => {
-          const value = userData[label] || '';
-          page.drawText(`${label}: ${value}`, {
-            x: 50,
-            y: startY - i * 30,
-            size: 12,
-            font: font,
-            color: PDFLib.rgb(0, 0, 0)
-          });
-        });
+entries.forEach((label, i) => {
+  const value = userData[label] || '';
+  page.drawText(`${label}: ${value}`, {
+    x: 50,
+    y: startY - i * 25, // 行間を少し狭く調整
+    size: 12,
+    font: font,
+    color: PDFLib.rgb(0, 0, 0)
+  });
+});
+
 
         const pdfBytes = await pdfDoc.save();
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
