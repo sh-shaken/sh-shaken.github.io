@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>PDF自動生成</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.5.1/tabletop.min.js"></script>
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
   <style>
     body { font-family: sans-serif; padding: 2em; }
@@ -12,36 +11,44 @@
 </head>
 <body>
   <h2>PDF生成フォーム</h2>
-  <input id="userId" placeholder="IDを入力（B列）" />
-  <input id="password" type="password" placeholder="PWを入力（C列）" />
+  <input id="userId" placeholder="IDを入力" />
+  <input id="password" type="password" placeholder="パスワードを入力" />
   <br>
   <button onclick="handleLogin()">PDFを生成</button>
   <p id="status"></p>
 
   <script>
-    const SHEET_KEY = '2PACX-1vSWkpUHsWxiEASWM8KJm_d1ElQ9UJJ7m5SC4d2gjzAgyMQsrj7uWKyvXYVjm7medKzcmC7PFynazGDj';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxliGluz1lvhwIWynHHGm46U2J28Ac3o7ZNw7ecGfYNG-mvszrWIPz0xjTidyUpHZY/exec';
     const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
 
-    function handleLogin() {
-      const userId = document.getElementById('userId').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const status = document.getElementById('status');
-      status.textContent = "認証中...";
+    async function handleLogin() {
+  const userId = document.getElementById('userId').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const status = document.getElementById('status');
+  status.textContent = "認証中...";
 
-      Tabletop.init({
-        key: SHEET_KEY,
-        simpleSheet: true,
-        callback: function(data) {
-          const row = data.find(r => r['ID'] === userId && r['PW'] === password);
-          if (!row) {
-            status.textContent = "IDまたはパスワードが一致しません。";
-            return;
-          }
-          status.textContent = "認証成功。PDF生成中...";
-          generatePDF(row);
-        }
-      });
+  try {
+    const response = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ id: userId, pw: password }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      status.textContent = "IDまたはパスワードが一致しません。";
+      return;
     }
+
+    status.textContent = "認証成功。PDF生成中...";
+    generatePDF(result);
+  } catch (error) {
+    console.error("通信エラー:", error);
+    status.textContent = "サーバーとの通信に失敗しました。GASのURLやCORS設定を確認してください。";
+  }
+}
+
 
     async function generatePDF(userData) {
       const status = document.getElementById('status');
@@ -51,12 +58,12 @@
         const page = pdfDoc.getPage(0);
         const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
 
-        const entries = ['左脳', '右脳', '学生※忘れずに', 'CP', 'NP', 'A', 'FC', 'AC', '結果受取'];
+        const keys = Object.keys(userData).filter(k => k !== "success");
         const startY = 700;
 
-        entries.forEach((label, i) => {
-          const value = userData[label] || '';
-          page.drawText(`${label}: ${value}`, {
+        keys.forEach((key, i) => {
+          const value = userData[key] || '';
+          page.drawText(`${key}: ${value}`, {
             x: 50,
             y: startY - i * 25,
             size: 12,
@@ -71,7 +78,7 @@
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${userData['ID'] || 'output'}.pdf`;  // IDで命名
+        a.download = `${userData['ID'] || 'output'}.pdf`;
         a.click();
 
         status.textContent = "PDFの生成が完了しました。";
