@@ -18,36 +18,32 @@
   <p id="status"></p>
 
   <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzLZ-Kmr0EZZIEbqZ-kvBJKOvbiGjWgeUzCsGo1v1_tscVBW4fpnvGiHPe-P29_EJ0Z/exec';
-    const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzLZ-Kmr0EZZIEbqZ-kvBJKOvbiGjWgeUzCsGo1v1_tscVBW4fpnvGiHPe-P29_EJ0Z/exec';
 
-    async function handleLogin() {
-      const userId = document.getElementById('userId').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const status = document.getElementById('status');
-      status.textContent = "認証中...";
+async function handleLogin() {
+  const userId = document.getElementById('userId').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const status = document.getElementById('status');
+  status.textContent = "認証中...";
 
-      try {
-        const bodyData = `id=${encodeURIComponent(userId)}&pw=${encodeURIComponent(password)}`;
-        const response = await fetch(GAS_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: bodyData
-        });
+  try {
+    const url = `${GAS_URL}?id=${encodeURIComponent(userId)}&pw=${encodeURIComponent(password)}`;
+    const response = await fetch(url);
+    const result = await response.json();
 
-        const result = await response.json();
+    if (!result.success) {
+      status.textContent = "IDまたはパスワードが一致しません。";
+      return;
+    }
 
-        if (!result.success) {
-          status.textContent = "IDまたはパスワードが一致しません。";
-          return;
-        }
+    status.textContent = "認証成功。PDF生成中...";
+    generatePDF(result);
+  } catch (error) {
+    console.error("通信エラー:", error);
+    status.textContent = "サーバーとの通信に失敗しました。";
+  }
+}
 
-        status.textContent = "認証成功。PDF生成中...";
-        generatePDF(result);
-      } catch (error) {
-        console.error("通信エラー:", error);
-        status.textContent = "サーバーとの通信に失敗しました。GASのURLやCORS設定を確認してください。";
-      }
     }
 
     async function generatePDF(userData) {
