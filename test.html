@@ -18,7 +18,7 @@
   <p id="status"></p>
 
   <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyT0SYxk1peHtT_13R1aDbrFsT41s4B1CBe4AiBUm8JoP61e4bu7XmG3JjmyA92Mkid/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzdFFSJBvfOzwBQYv6VoCUoyLdi8tTn7TfBdAiwKEjXiKlYktj7vE7v-T6VfhCRA4C2/exec';
     const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
 
     async function handleLogin() {
@@ -29,10 +29,11 @@
 
   try {
     const response = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ id: userId, pw: password }),
-      headers: { 'Content-Type': 'application/json' }
-    });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: `id=${encodeURIComponent(userId)}&pw=${encodeURIComponent(password)}`
+});
+
 
     const result = await response.json();
 
