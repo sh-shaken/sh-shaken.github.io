@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>PDF自動生成</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.5.1/tabletop.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 2em; }
+    input, button { margin: 0.5em 0; padding: 0.5em; font-size: 1em; }
+  </style>
+</head>
+<body>
+  <h2>PDF生成フォーム</h2>
+  <input id="userId" placeholder="番号を入力（B列）" />
+  <input id="password" type="password" placeholder="パスワードを入力（C列）" />
+  <br>
+  <button onclick="handleLogin()">PDFを生成</button>
+  <p id="status"></p>
+
+  <script>
+    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1ptcUwYY4CNqM2Z2UC4Ej-SagjmcOA6R15OKkju9-d-k/edit?usp=sharingl';
+    const PDF_TEMPLATE_URL = 'https://docs.google.com/document/d/1vsNjIkf1Ht_y0L_VPPtoF9PlVcRm2bT158b-QdHy0uY/edit?usp=sharing'; // GitHub PagesやDrive直リンクなど
+
+    function handleLogin() {
+      const userId = document.getElementById('userId').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const status = document.getElementById('status');
+      status.textContent = "認証中...";
+
+      Tabletop.init({
+        key: SHEET_URL,
+        simpleSheet: true,
+        callback: function(data) {
+          const row = data.find(r => r['番号'] === userId && r['パスワード'] === password);
+          if (!row) {
+            status.textContent = "番号またはパスワードが一致しません。";
+            return;
+          }
+          status.textContent = "認証成功。PDF生成中...";
+          generatePDF(row);
+        }
+      });
+    }
+
+    async function generatePDF(userData) {
+      const status = document.getElementById('status');
+      try {
+        const existingPdfBytes = await fetch(PDF_TEMPLATE_URL).then(res => res.arrayBuffer());
+        const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+        const page = pdfDoc.getPage(0);
+        const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+
+        const entries = ['氏名', '日付', '点数1', '点数2', '点数3', '評価', 'コメント', '備考']; // ← D〜K列に対応するラベル
+        const startY = 700;
+
+        entries.forEach((label, i) => {
+          const value = userData[label] || '';
+          page.drawText(`${label}: ${value}`, {
+            x: 50,
+            y: startY - i * 30,
+            size: 12,
+            font: font,
+            color: PDFLib.rgb(0, 0, 0)
+          });
+        });
+
+        const pdfBytes = await pdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${userData['氏名'] || 'output'}.pdf`;
+        a.click();
+
+        status.textContent = "PDFの生成が完了しました。";
+      } catch (err) {
+        status.textContent = "PDF生成中にエラーが発生しました。";
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
