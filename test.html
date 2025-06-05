@@ -32,10 +32,11 @@ async function handleLogin() {
     const response = await fetch(url);
     const result = await response.json();
 
-    if (!result.success) {
-      status.textContent = "IDまたはパスワードが一致しません。";
-      return;
-    }
+if (result.success !== true) {
+  status.textContent = "IDまたはパスワードが一致しません。";
+  return;
+}
+
 
     status.textContent = "認証成功。PDF生成中...";
     generatePDF(result);
@@ -43,6 +44,10 @@ async function handleLogin() {
     console.error("通信エラー:", error);
     status.textContent = "サーバーとの通信に失敗しました。";
   }
+}
+if (!userData || !userData.success) {
+  status.textContent = "ユーザーデータが無効です。";
+  return;
 }
 
     async function generatePDF(userData) {
