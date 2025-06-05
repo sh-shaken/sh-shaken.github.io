@@ -12,15 +12,15 @@
 </head>
 <body>
   <h2>PDF生成フォーム</h2>
-  <input id="userId" placeholder="番号を入力（B列）" />
-  <input id="password" type="password" placeholder="パスワードを入力（C列）" />
+  <input id="userId" placeholder="IDを入力（B列）" />
+  <input id="password" type="password" placeholder="PWを入力（C列）" />
   <br>
   <button onclick="handleLogin()">PDFを生成</button>
   <p id="status"></p>
 
   <script>
-    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSWkpUHsWxiEASWM8KJm_d1ElQ9UJJ7m5SC4d2gjzAgyMQsrj7uWKyvXYVjm7medKzcmC7PFynazGDj/pubhtml';
-    const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf'; // GitHub PagesやDrive直リンクなど
+    const SHEET_KEY = '2PACX-1vSWkpUHsWxiEASWM8KJm_d1ElQ9UJJ7m5SC4d2gjzAgyMQsrj7uWKyvXYVjm7medKzcmC7PFynazGDj';
+    const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
 
     function handleLogin() {
       const userId = document.getElementById('userId').value.trim();
@@ -28,21 +28,19 @@
       const status = document.getElementById('status');
       status.textContent = "認証中...";
 
-      // 認証処理
-    Tabletop.init({
-      key: SHEET_URL,
-      simpleSheet: true,
-      callback: function(data) {
-        const row = data.find(r => r['ID'] === userId && r['PW'] === password);
-        if (!row) {
-          status.textContent = "IDまたはパスワードが一致しません。";
-          return;
+      Tabletop.init({
+        key: SHEET_KEY,
+        simpleSheet: true,
+        callback: function(data) {
+          const row = data.find(r => r['ID'] === userId && r['PW'] === password);
+          if (!row) {
+            status.textContent = "IDまたはパスワードが一致しません。";
+            return;
+          }
+          status.textContent = "認証成功。PDF生成中...";
+          generatePDF(row);
         }
-        status.textContent = "認証成功。PDF生成中...";
-        generatePDF(row);
-  }
-});
-
+      });
     }
 
     async function generatePDF(userData) {
@@ -53,21 +51,19 @@
         const page = pdfDoc.getPage(0);
         const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
 
-        // PDFへの書き込み部分
-const entries = ['左脳', '右脳', '学生※忘れずに', 'CP', 'NP', 'A', 'FC', 'AC', '結果受取'];
-const startY = 700;
+        const entries = ['左脳', '右脳', '学生※忘れずに', 'CP', 'NP', 'A', 'FC', 'AC', '結果受取'];
+        const startY = 700;
 
-entries.forEach((label, i) => {
-  const value = userData[label] || '';
-  page.drawText(`${label}: ${value}`, {
-    x: 50,
-    y: startY - i * 25, // 行間を少し狭く調整
-    size: 12,
-    font: font,
-    color: PDFLib.rgb(0, 0, 0)
-  });
-});
-
+        entries.forEach((label, i) => {
+          const value = userData[label] || '';
+          page.drawText(`${label}: ${value}`, {
+            x: 50,
+            y: startY - i * 25,
+            size: 12,
+            font: font,
+            color: PDFLib.rgb(0, 0, 0)
+          });
+        });
 
         const pdfBytes = await pdfDoc.save();
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -75,7 +71,7 @@ entries.forEach((label, i) => {
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${userData['氏名'] || 'output'}.pdf`;
+        a.download = `${userData['ID'] || 'output'}.pdf`;  // IDで命名
         a.click();
 
         status.textContent = "PDFの生成が完了しました。";
