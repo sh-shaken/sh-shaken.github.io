@@ -131,24 +131,28 @@ function getRandomAvailableNumber(candidates, used) {
 }
 
 
-    (async () => {
-      const usedNumbers = await fetchUsedNumbers();
-      const candidates = generateCandidateNumbers();
-      const number = getRandomAvailableNumber(candidates, usedNumbers);
+     (async () => {
+    const usedNumbers = await fetchUsedNumbers();
+    const candidates = generateCandidateNumbers();
+    const number = getRandomAvailableNumber(candidates, usedNumbers);
 
-      const numberDisplay = document.getElementById('number');
-      if (!number) {
-        numberDisplay.textContent = "番号が取得できませんでした";
-        return;
-      }
+    const numberDisplay = document.getElementById('number');
+    if (!number) {
+      numberDisplay.textContent = "番号が取得できませんでした";
+      return;
+    }
 
-      numberDisplay.textContent = number;
+    numberDisplay.textContent = number;
 
-      window.copyNumber = function () {
-        navigator.clipboard.writeText(number)
-          .then(() => alert("番号をコピーしました: " + number));
-      };
-    })();
+    window.copyNumber = function () {
+      navigator.clipboard.writeText(number)
+        .then(() => alert("番号をコピーしました: " + number));
+    };
+
+    window.goToTest = function () {
+      window.location.href = "https://forms.gle/tqunfGCxAHUfWJHG9";
+    };
+  })();
   </script>
 </body>
 </html>
