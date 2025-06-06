@@ -75,7 +75,7 @@
 
     try {
       await generatePDF(result);
-      status.textContent = "結果の生成が完了しました。";
+      status.textContent = "結果の生成が完了しました！心理テストにご協力いただき、ありがとうございました！";
     } catch (err) {
       console.error("PDF生成エラー:", err);
       status.textContent = "結果PDFの生成中にエラーが発生しました。";
