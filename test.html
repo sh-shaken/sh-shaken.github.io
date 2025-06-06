@@ -18,8 +18,9 @@
   <p id="status"></p>
 
   <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxAa2KZbwtTQDYq0ZZNbEUed73jc31J5R0InASf5fu2TF7fLybs-CZYHMVSCVm5hwN8/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwY-PGUcPWldYAw9etEH2mf6smvJuTSvWDcq4ZY5ua_12vDlD5eev4NC5VBEPGMnuZg/exec';
     const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
+    const FONT_URL = 'https://fonts.gstatic.com/ea/notosansjp/v6/NotoSansJP-Regular.otf'; // 日本語対応フォント
 
     function handleLogin() {
       const userId = document.getElementById('userId').value.trim();
@@ -49,10 +50,14 @@
       const status = document.getElementById('status');
 
       try {
-        const existingPdfBytes = await fetch(PDF_TEMPLATE_URL).then(res => res.arrayBuffer());
-        const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+        const [pdfBytes, fontBytes] = await Promise.all([
+          fetch(PDF_TEMPLATE_URL).then(res => res.arrayBuffer()),
+          fetch(FONT_URL).then(res => res.arrayBuffer())
+        ]);
+
+        const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+        const customFont = await pdfDoc.embedFont(fontBytes);
         const page = pdfDoc.getPage(0);
-        const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
 
         const keys = Object.keys(userData).filter(k => k !== "success");
         const startY = 700;
@@ -63,13 +68,13 @@
             x: 50,
             y: startY - i * 25,
             size: 12,
-            font: font,
+            font: customFont,
             color: PDFLib.rgb(0, 0, 0)
           });
         });
 
-        const pdfBytes = await pdfDoc.save();
-        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const pdfBytesOut = await pdfDoc.save();
+        const blob = new Blob([pdfBytesOut], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
 
         const a = document.createElement('a');
