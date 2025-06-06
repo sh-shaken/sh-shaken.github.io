@@ -72,16 +72,16 @@ async function generatePDF(userData) {
 
     // ページ 0 に書き込む位置（例）
     const positionsPage1 = {
-      ID:        { x: 503,  y: 740 },
-      左脳:      { x: 208,  y: 630 },
-      右脳:      { x: 357,  y: 630 },
+      ID:        { x: 503,  y: 755 },
+      左脳:      { x: 208,  y: 640 },
+      右脳:      { x: 357,  y: 640 },
     };
 
     // ページ 1 に書き込む位置（例）
     const positionsPage2 = {
-      CP:        { x: 100,  y: 505 },
-      NP:        { x: 100,  y: 460 },
-      A:         { x: 100,  y: 418 },
+      CP:        { x: 90,  y: 505 },
+      NP:        { x: 90,  y: 460 },
+      A:         { x: 90,  y: 418 },
       FC:        { x: 100,  y: 377 },
       AC:        { x: 100,  y: 335 },
     };
@@ -94,7 +94,7 @@ async function generatePDF(userData) {
         page1.drawText(String(val), {
           x: positionsPage1[key].x,
           y: positionsPage1[key].y,
-          size: 25,
+          size: 40,
           font: customFont,
           color: PDFLib.rgb(1, 0, 0) // 赤文字
         });
@@ -110,7 +110,7 @@ async function generatePDF(userData) {
           page2.drawText(String(val), {
             x: positionsPage2[key].x,
             y: positionsPage2[key].y,
-            size: 25,
+            size: 20,
             font: customFont,
             color: PDFLib.rgb(1, 0, 0) // 赤文字
           });
