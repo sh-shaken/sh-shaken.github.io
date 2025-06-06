@@ -10,14 +10,13 @@
   <h2>PDF生成フォーム</h2>
   <input id="userId" placeholder="IDを入力" />
   <input id="password" type="password" placeholder="パスワードを入力" />
-  <br>
   <button onclick="handleLogin()">PDFを生成</button>
   <p id="status"></p>
 
   <script>
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwY-PGUcPWldYAw9etEH2mf6smvJuTSvWDcq4ZY5ua_12vDlD5eev4NC5VBEPGMnuZg/exec';
     const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
-    const FONT_URL = 'https://fonts.gstatic.com/ea/notosansjp/v6/NotoSansJP-Regular.otf'; // 日本語対応フォント
+    const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Regular.ttf'; // ← GitHubに置いたフォント
 
     function handleLogin() {
       const userId = document.getElementById('userId').value.trim();
@@ -32,8 +31,6 @@
 
     async function handleJSONPResponse(result) {
       const status = document.getElementById('status');
-      console.log("GASからのレスポンス:", result);
-
       if (!result.success) {
         status.textContent = "IDまたはパスワードが一致しません。";
         return;
@@ -53,7 +50,11 @@
         ]);
 
         const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+
+        // フォント登録
+        pdfDoc.registerFontkit(fontkit);
         const customFont = await pdfDoc.embedFont(fontBytes);
+
         const page = pdfDoc.getPage(0);
 
         const keys = Object.keys(userData).filter(k => k !== "success");
@@ -88,3 +89,4 @@
   </script>
 </body>
 </html>
+
