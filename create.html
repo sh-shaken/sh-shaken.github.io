@@ -1,4 +1,4 @@
-<!doctypehtml><html lang=ja><meta charset=UTF-8><meta content="width=device-width,initial-scale=1"name=viewport><title>番号を発行</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap"rel=stylesheet><style>*{box-sizing:border-box}body{font-family:'Noto Sans JP',sans-serif;background-color:#f8f9fa;margin:0;padding:0;display:flex;justify-content:center;align-items:center;height:100vh}.container{background-color:#fff;padding:2em;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.1);text-align:center;max-width:400px;width:90%}.label{font-size:1em;color:#555;margin-top:1em}.code{font-size:2em;margin:.5em 0 1.2em 0;font-weight:700;color:#007bff}.note{font-size:.9em;color:#777}button{margin-top:1em;padding:.8em 1.5em;font-size:1em;color:#fff;border:none;border-radius:6px;cursor:pointer;transition:background-color .3s ease;width:100%}.copy-button{background-color:rgba(0,123,255,.5)}.copy-button:hover{background-color:rgba(0,86,179,1)}.test-button{background-color:#6f42c1}.test-button:hover{background-color:#5a32a3}</style><div class=container><h1 id=status-message>あなたの番号を発行しています...</h1><div class=label>番号:</div><div class=code id=number>読み込み中...</div><button class=copy-button onclick=copyNumber()>番号をコピーする</button><p class=note>※受付より番号札が既に配られている場合、この番号は必要ありません。<p class=note>※この番号は絶対に覚えてください。覚えましたら、心理テストにお進みください↓</p><button class=test-button onclick=goToTest()>心理テストを受ける！</button></div><script>async function fetchUsedNumbers() {
+<!doctypehtml><html lang=ja><meta charset=UTF-8><meta content="width=device-width,initial-scale=1"name=viewport><title>番号を発行</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap"rel=stylesheet><style>*{box-sizing:border-box}body{font-family:'Noto Sans JP',sans-serif;background-color:#f8f9fa;margin:0;padding:0;display:flex;justify-content:center;align-items:center;height:100vh}.container{background-color:#fff;padding:2em;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.1);text-align:center;max-width:400px;width:90%}h1{margin-bottom:1em;color:#333}.label{font-size:1em;color:#555;margin-top:1em}.code{font-size:2em;margin:.5em 0 1.2em 0;font-weight:700;color:#007bff}.note{font-size:.9em;color:#777}button{margin-top:1em;padding:.8em 1.5em;font-size:1em;color:#fff;border:none;border-radius:6px;cursor:pointer;transition:background-color .3s ease;width:100%}.copy-button{background-color:rgba(0,123,255,.5)}.copy-button:hover{background-color:rgba(0,86,179,1)}.test-button{background-color:#6f42c1}.test-button:hover{background-color:#5a32a3}</style><div class=container><h1 id=status-message>あなたの番号を発行しています...</h1><div class=label>番号:</div><div class=code id=number>読み込み中...</div><button class=copy-button onclick=copyNumber()>番号をコピーする</button><p class=note>※受付より番号札が既に配られている場合、この番号は必要ありません。<p class=note>※この番号は絶対に覚えてください。覚えましたら、心理テストにお進みください↓</p><button class=test-button onclick=goToTest()>心理テストを受ける！</button></div><script>async function fetchUsedNumbers() {
       const usedURL = 'https://script.google.com/macros/s/AKfycbylN94TA9Mxxo4xIXnXMnbNmh3RjgytHQMGb1QsASQyBHpem5wJ-mLMT8PDmcAWaQXc/exec';
       try {
         const response = await fetch(usedURL);
@@ -21,7 +21,8 @@
       const normalizedUsed = used.map(n => String(n).trim().replace(/^0+/, ""));
       const available = candidates.filter(n => !normalizedUsed.includes(n));
       if (available.length === 0) return null;
-      return available[Math.floor(Math.random() * available.length)];
+      const randomIndex = Math.floor(Math.random() * available.length);
+      return available[randomIndex];
     }
 
     (async () => {
@@ -47,6 +48,6 @@
       };
 
       window.goToTest = function () {
-        window.location.href = "https://forms.gle/tqunfGCxAHUfWJHG9";
+        window.open("https://forms.gle/tqunfGCxAHUfWJHG9", "_blank");
       };
     })();</script>
