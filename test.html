@@ -72,9 +72,9 @@ async function generatePDF(userData) {
 
     // ページ 0 に書き込む位置（例）
     const positionsPage1 = {
-      ID:        { x: 50,  y: 700 },
-      左脳:      { x: 50,  y: 670 },
-      右脳:      { x: 50,  y: 640 },
+      ID:        { x: 503,  y: 750 },
+      左脳:      { x: 208,  y: 670 },
+      右脳:      { x: 357,  y: 670 },
     };
 
     // ページ 1 に書き込む位置（例）
@@ -94,7 +94,7 @@ async function generatePDF(userData) {
         page1.drawText(String(val), {
           x: positionsPage1[key].x,
           y: positionsPage1[key].y,
-          size: 14,
+          size: 25,
           font: customFont,
           color: PDFLib.rgb(1, 0, 0) // 赤文字
         });
