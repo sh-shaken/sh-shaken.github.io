@@ -56,53 +56,62 @@
 }
 
 
-    async function generatePDF(userData) {
-      const status = document.getElementById('status');
+async function generatePDF(userData) {
+  const status = document.getElementById('status');
 
-      try {
-        const [pdfBytes, fontBytes] = await Promise.all([
-          fetch(PDF_TEMPLATE_URL).then(res => res.arrayBuffer()),
-          fetch(FONT_URL).then(res => res.arrayBuffer())
-        ]);
+  try {
+    const [pdfBytes, fontBytes] = await Promise.all([
+      fetch(PDF_TEMPLATE_URL).then(res => res.arrayBuffer()),
+      fetch(FONT_URL).then(res => res.arrayBuffer())
+    ]);
 
-        const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+    const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+    pdfDoc.registerFontkit(window.fontkit);
+    const customFont = await pdfDoc.embedFont(fontBytes);
+    const page = pdfDoc.getPage(0);
 
-        // フォント登録
-        pdfDoc.registerFontkit(window.fontkit);
-        const customFont = await pdfDoc.embedFont(fontBytes);
+    // 位置情報（あとで調整しやすく）
+    const positions = {
+      ID:        { x: 50,  y: 700 },
+      左脳:      { x: 50,  y: 670 },
+      右脳:      { x: 50,  y: 640 },
+      CP:        { x: 50,  y: 610 },
+      NP:        { x: 50,  y: 580 },
+      A:         { x: 50,  y: 550 },
+      FC:        { x: 50,  y: 520 },
+      AC:        { x: 50,  y: 490 },
+    };
 
-
-        const page = pdfDoc.getPage(0);
-
-        const keys = Object.keys(userData).filter(k => k !== "success");
-        const startY = 700;
-
-        keys.forEach((key, i) => {
-          const value = userData[key] || '';
-          page.drawText(`${key}: ${value}`, {
-            x: 50,
-            y: startY - i * 25,
-            size: 12,
-            font: customFont,
-            color: PDFLib.rgb(0, 0, 0)
-          });
+    // 数字だけ取り出して描画
+    for (const key in positions) {
+      const val = userData[key];
+      if (val !== undefined) {
+        page.drawText(String(val), {
+          x: positions[key].x,
+          y: positions[key].y,
+          size: 14,
+          font: customFont,
+          color: PDFLib.rgb(0, 0, 0)
         });
-
-        const pdfBytesOut = await pdfDoc.save();
-        const blob = new Blob([pdfBytesOut], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${userData['ID'] || 'output'}.pdf`;
-        a.click();
-
-        status.textContent = "PDFの生成が完了しました。";
-      } catch (err) {
-        console.error("PDF生成エラー:", err);
-        status.textContent = "PDF生成中にエラーが発生しました。";
       }
     }
+
+    const pdfBytesOut = await pdfDoc.save();
+    const blob = new Blob([pdfBytesOut], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${userData['ID'] || 'output'}.pdf`;
+    a.click();
+
+    status.textContent = "PDFの生成が完了しました。";
+  } catch (err) {
+    console.error("PDF生成エラー:", err);
+    status.textContent = "PDF生成中にエラーが発生しました。";
+  }
+}
+
   </script>
 </body>
 </html>
