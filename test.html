@@ -15,7 +15,7 @@
   <p id="status"></p>
 
   <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwY-PGUcPWldYAw9etEH2mf6smvJuTSvWDcq4ZY5ua_12vDlD5eev4NC5VBEPGMnuZg/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbySpS77YtVFI8Cv91PvDTsdvuAKnVOqLTgSwfGgV0bXIcs-AsHHmaW1KLraO3I5Zk4/exec';
     const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
     const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Regular.ttf'; // ← GitHubに置いたフォント
 
@@ -31,15 +31,30 @@
     }
 
     async function handleJSONPResponse(result) {
-      const status = document.getElementById('status');
-      if (!result.success) {
-        status.textContent = "IDまたはパスワードが一致しません。";
-        return;
-      }
+  const status = document.getElementById('status');
 
-      status.textContent = "認証成功。PDF生成中...";
-      generatePDF(result);
-    }
+  if (!result.success) {
+    status.textContent = "IDまたはパスワードが一致しません。";
+    return;
+  }
+
+  // 表示用ログ出力（デバッグ）
+  console.log("スプレッドシートからのデータ:", result);
+
+  // 表にも表示したい場合
+  const logLines = Object.entries(result)
+    .filter(([k]) => k !== "success")
+    .map(([key, val]) => `${key}: ${val}`)
+    .join("\n");
+    
+  const pre = document.createElement('pre');
+  pre.textContent = "【取得データログ】\n" + logLines;
+  document.body.appendChild(pre);
+
+  status.textContent = "認証成功。PDF生成中...";
+  generatePDF(result);
+}
+
 
     async function generatePDF(userData) {
       const status = document.getElementById('status');
