@@ -2,139 +2,208 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>PDF自動生成</title>
-  <!-- ヘッダーのscript読み込み部分 -->
-<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-<script src="https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.js"></script>
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <title>結果受け取りページ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script src="https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.js"></script>
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: #fff;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.1);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 1.5em;
+      color: #333;
+    }
+    label {
+      display: block;
+      text-align: left;
+      margin-top: 1em;
+      font-weight: 700;
+      color: #555;
+    }
+    input {
+      width: 100%;
+      padding: .7em;
+      margin-top: .3em;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 1.5em;
+      padding: .8em 1.5em;
+      font-size: 1em;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color .3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #status {
+      margin-top: 1em;
+      color: #333;
+      font-size: 0.9em;
+    }
+    pre {
+      text-align: left;
+      background: #f7f7f7;
+      padding: 1em;
+      border-radius: 6px;
+      font-size: 0.85em;
+      margin-top: 1em;
+    }
+  </style>
 </head>
 <body>
-  <h2>PDF生成フォーム</h2>
-  <input id="userId" placeholder="IDを入力" />
-  <input id="password" type="password" placeholder="パスワードを入力" />
-  <button onclick="handleLogin()">PDFを生成</button>
-  <p id="status"></p>
+  <div class="container">
+    <h1>結果を受け取る！</h1>
+    <form onsubmit="handleLogin(event)">
+      <label for="number">番号 (1〜4桁の半角数字):</label>
+      <input id="number" name="number" pattern="^\d{1,4}$" required title="1〜4桁の半角数字を入力してください">
+
+      <label for="password">パスワード (4桁の半角数字):</label>
+      <input id="password" name="password" pattern="^\d{4}$" required title="4桁の半角数字を入力してください">
+
+      <button type="submit">送信</button>
+    </form>
+    <p id="status"></p>
+  </div>
 
   <script>
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbySpS77YtVFI8Cv91PvDTsdvuAKnVOqLTgSwfGgV0bXIcs-AsHHmaW1KLraO3I5Zk4/exec';
     const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
-    const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Bold.ttf'; // ← GitHubに置いたフォント
+    const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Bold.ttf';
 
-    function handleLogin() {
-      const userId = document.getElementById('userId').value.trim();
+    function handleLogin(event) {
+      event.preventDefault();
+      const number = document.getElementById('number').value.trim().replace(/^0+/, '');
       const password = document.getElementById('password').value.trim();
       const status = document.getElementById('status');
       status.textContent = "認証中...";
 
       const script = document.createElement('script');
-      script.src = `${GAS_URL}?id=${encodeURIComponent(userId)}&pw=${encodeURIComponent(password)}&callback=handleJSONPResponse`;
+      script.src = `${GAS_URL}?id=${encodeURIComponent(number)}&pw=${encodeURIComponent(password)}&callback=handleJSONPResponse`;
       document.body.appendChild(script);
     }
 
     async function handleJSONPResponse(result) {
-  const status = document.getElementById('status');
+      const status = document.getElementById('status');
 
-  if (!result.success) {
-    status.textContent = "IDまたはパスワードが一致しません。";
-    return;
-  }
-
-  // 表示用ログ出力（デバッグ）
-  console.log("スプレッドシートからのデータ:", result);
-
-  // 表にも表示したい場合
-  const logLines = Object.entries(result)
-    .filter(([k]) => k !== "success")
-    .map(([key, val]) => `${key}: ${val}`)
-    .join("\n");
-    
-  const pre = document.createElement('pre');
-  pre.textContent = "【取得データログ】\n" + logLines;
-  document.body.appendChild(pre);
-
-  status.textContent = "認証成功。PDF生成中...";
-  generatePDF(result);
-}
-
-
-async function generatePDF(userData) {
-  const status = document.getElementById('status');
-
-  try {
-    const [pdfBytes, fontBytes] = await Promise.all([
-      fetch(PDF_TEMPLATE_URL).then(res => res.arrayBuffer()),
-      fetch(FONT_URL).then(res => res.arrayBuffer())
-    ]);
-
-    const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
-    pdfDoc.registerFontkit(window.fontkit);
-    const customFont = await pdfDoc.embedFont(fontBytes);
-    const pages = pdfDoc.getPages(); // すべてのページ取得
-
-    // ページ 0 に書き込む位置（例）
-    const positionsPage1 = {
-      ID:        { x: 503,  y: 755 },
-      左脳:      { x: 200,  y: 645 },
-      右脳:      { x: 350,  y: 645 },
-    };
-
-    // ページ 1 に書き込む位置（例）
-    const positionsPage2 = {
-      CP:        { x: 90,  y: 505 },
-      NP:        { x: 90,  y: 460 },
-      A:         { x: 90,  y: 418 },
-      FC:        { x: 90,  y: 377 },
-      AC:        { x: 90,  y: 335 },
-    };
-
-    // ページ 1（index 0）
-    const page1 = pages[0];
-    for (const key in positionsPage1) {
-      const val = userData[key];
-      if (val !== undefined) {
-        page1.drawText(String(val), {
-          x: positionsPage1[key].x,
-          y: positionsPage1[key].y,
-          size: key === 'ID' ? 18 : 40, 
-          font: customFont,
-          color: PDFLib.rgb(1, 0, 0) // 赤文字
-        });
+      if (!result.success) {
+        status.textContent = "IDまたはパスワードが一致しません。";
+        return;
       }
+
+      // 表示用ログ出力
+      const logLines = Object.entries(result)
+        .filter(([k]) => k !== "success")
+        .map(([key, val]) => `${key}: ${val}`)
+        .join("\n");
+        
+      const pre = document.createElement('pre');
+      pre.textContent = "【取得データログ】\n" + logLines;
+      document.querySelector('.container').appendChild(pre);
+
+      status.textContent = "認証成功。PDF生成中...";
+      generatePDF(result);
     }
 
-    // ページ 2（index 1）※存在する場合のみ
-    if (pages.length >= 2) {
-      const page2 = pages[1];
-      for (const key in positionsPage2) {
-        const val = userData[key];
-        if (val !== undefined) {
-          page2.drawText(String(val), {
-            x: positionsPage2[key].x,
-            y: positionsPage2[key].y,
-            size: 20,
-            font: customFont,
-            color: PDFLib.rgb(1, 0, 0) // 赤文字
-          });
+    async function generatePDF(userData) {
+      const status = document.getElementById('status');
+
+      try {
+        const [pdfBytes, fontBytes] = await Promise.all([
+          fetch(PDF_TEMPLATE_URL).then(res => res.arrayBuffer()),
+          fetch(FONT_URL).then(res => res.arrayBuffer())
+        ]);
+
+        const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+        pdfDoc.registerFontkit(window.fontkit);
+        const customFont = await pdfDoc.embedFont(fontBytes);
+        const pages = pdfDoc.getPages();
+
+        const positionsPage1 = {
+          ID:        { x: 503,  y: 780 },
+          左脳:      { x: 200,  y: 645 },
+          右脳:      { x: 350,  y: 645 },
+        };
+
+        const positionsPage2 = {
+          CP:        { x: 90,  y: 505 },
+          NP:        { x: 90,  y: 460 },
+          A:         { x: 90,  y: 418 },
+          FC:        { x: 90,  y: 377 },
+          AC:        { x: 90,  y: 335 },
+        };
+
+        const page1 = pages[0];
+        for (const key in positionsPage1) {
+          const val = userData[key];
+          if (val !== undefined) {
+            page1.drawText(String(val), {
+              x: positionsPage1[key].x,
+              y: positionsPage1[key].y,
+              size: key === 'ID' ? 18 : 40,
+              font: customFont,
+              color: PDFLib.rgb(1, 0, 0)
+            });
+          }
         }
+
+        if (pages.length >= 2) {
+          const page2 = pages[1];
+          for (const key in positionsPage2) {
+            const val = userData[key];
+            if (val !== undefined) {
+              page2.drawText(String(val), {
+                x: positionsPage2[key].x,
+                y: positionsPage2[key].y,
+                size: 20,
+                font: customFont,
+                color: PDFLib.rgb(1, 0, 0)
+              });
+            }
+          }
+        }
+
+        const pdfBytesOut = await pdfDoc.save();
+        const blob = new Blob([pdfBytesOut], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${userData['ID'] || 'output'}.pdf`;
+        a.click();
+
+        status.textContent = "PDFの生成が完了しました。";
+      } catch (err) {
+        console.error("PDF生成エラー:", err);
+        status.textContent = "PDF生成中にエラーが発生しました。";
       }
     }
-
-    const pdfBytesOut = await pdfDoc.save();
-    const blob = new Blob([pdfBytesOut], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${userData['ID'] || 'output'}.pdf`;
-    a.click();
-
-    status.textContent = "PDFの生成が完了しました。";
-  } catch (err) {
-    console.error("PDF生成エラー:", err);
-    status.textContent = "PDF生成中にエラーが発生しました。";
-  }
-}
-
   </script>
 </body>
 </html>
-
