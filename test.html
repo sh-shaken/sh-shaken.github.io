@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <title>PDF自動生成</title>
-  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-  <script src="https://unpkg.com/fontkit@2.0.2/index.js"></script>
+  <!-- ヘッダーのscript読み込み部分 -->
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+<script src="https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.js"></script>
 </head>
 <body>
   <h2>PDF生成フォーム</h2>
@@ -52,8 +53,9 @@
         const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
 
         // フォント登録
-        pdfDoc.registerFontkit(fontkit);
+        pdfDoc.registerFontkit(window.fontkit);
         const customFont = await pdfDoc.embedFont(fontBytes);
+
 
         const page = pdfDoc.getPage(0);
 
