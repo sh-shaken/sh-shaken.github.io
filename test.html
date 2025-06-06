@@ -149,7 +149,7 @@
           ID:        { x: 503,  y: 768 },
           左脳:      { x: 200,  y: 645 },
           右脳:      { x: 350,  y: 645 },
-          学生:      { x: 90, y: 400 },
+          学生:      { x: 40, y: 300 },
         };
 
         const positionsPage2 = {
@@ -167,7 +167,7 @@
             page1.drawText(String(val), {
               x: positionsPage1[key].x,
               y: positionsPage1[key].y,
-              size: key === 'ID' ? 18 : 40,
+              size: (key === 'ID' || key === '学生') ? 18 : 40,
               font: customFont,
               color: PDFLib.rgb(1, 0, 0)
             });
