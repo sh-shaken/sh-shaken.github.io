@@ -94,7 +94,7 @@ async function generatePDF(userData) {
         page1.drawText(String(val), {
           x: positionsPage1[key].x,
           y: positionsPage1[key].y,
-          size: 40,
+          size: key === 'ID' ? 18 : 40, 
           font: customFont,
           color: PDFLib.rgb(1, 0, 0) // 赤文字
         });
