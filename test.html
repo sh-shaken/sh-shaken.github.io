@@ -17,7 +17,7 @@
   <script>
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbySpS77YtVFI8Cv91PvDTsdvuAKnVOqLTgSwfGgV0bXIcs-AsHHmaW1KLraO3I5Zk4/exec';
     const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
-    const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Regular.ttf'; // ← GitHubに置いたフォント
+    const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Bold.ttf'; // ← GitHubに置いたフォント
 
     function handleLogin() {
       const userId = document.getElementById('userId').value.trim();
@@ -68,31 +68,53 @@ async function generatePDF(userData) {
     const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
     pdfDoc.registerFontkit(window.fontkit);
     const customFont = await pdfDoc.embedFont(fontBytes);
-    const page = pdfDoc.getPage(0);
+    const pages = pdfDoc.getPages(); // すべてのページ取得
 
-    // 位置情報（あとで調整しやすく）
-    const positions = {
+    // ページ 0 に書き込む位置（例）
+    const positionsPage1 = {
       ID:        { x: 50,  y: 700 },
       左脳:      { x: 50,  y: 670 },
       右脳:      { x: 50,  y: 640 },
-      CP:        { x: 50,  y: 610 },
-      NP:        { x: 50,  y: 580 },
-      A:         { x: 50,  y: 550 },
-      FC:        { x: 50,  y: 520 },
-      AC:        { x: 50,  y: 490 },
     };
 
-    // 数字だけ取り出して描画
-    for (const key in positions) {
+    // ページ 1 に書き込む位置（例）
+    const positionsPage2 = {
+      CP:        { x: 50,  y: 700 },
+      NP:        { x: 50,  y: 670 },
+      A:         { x: 50,  y: 640 },
+      FC:        { x: 50,  y: 610 },
+      AC:        { x: 50,  y: 580 },
+    };
+
+    // ページ 1（index 0）
+    const page1 = pages[0];
+    for (const key in positionsPage1) {
       const val = userData[key];
       if (val !== undefined) {
-        page.drawText(String(val), {
-          x: positions[key].x,
-          y: positions[key].y,
+        page1.drawText(String(val), {
+          x: positionsPage1[key].x,
+          y: positionsPage1[key].y,
           size: 14,
           font: customFont,
-          color: PDFLib.rgb(0, 0, 0)
+          color: PDFLib.rgb(1, 0, 0) // 赤文字
         });
+      }
+    }
+
+    // ページ 2（index 1）※存在する場合のみ
+    if (pages.length >= 2) {
+      const page2 = pages[1];
+      for (const key in positionsPage2) {
+        const val = userData[key];
+        if (val !== undefined) {
+          page2.drawText(String(val), {
+            x: positionsPage2[key].x,
+            y: positionsPage2[key].y,
+            size: 14,
+            font: customFont,
+            color: PDFLib.rgb(1, 0, 0) // 赤文字
+          });
+        }
       }
     }
 
