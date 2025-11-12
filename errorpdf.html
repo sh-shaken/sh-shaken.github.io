@@ -3,103 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta content="width=device-width,initial-scale=1" name="viewport">
-  <title>結果受け取りページ</title>
+  <title>結果PDFが表示されないときの対処法</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-  <script src="https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.js"></script>
   <style>
     body {
       font-family: 'Noto Sans JP', sans-serif;
-      background-color: #f0f2f5;
+      background-color: #f0f4f8;
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
+      align-items: flex-start;
+      min-height: 100vh;
     }
     .container {
       background-color: #fff;
-      padding: 2em;
+      padding: 2em 1.5em;
       border-radius: 12px;
       box-shadow: 0 4px 16px rgba(0,0,0,.1);
-      max-width: 400px;
+      max-width: 500px;
       width: 90%;
-      text-align: center;
+      margin: 2em auto;
+      line-height: 1.8;
     }
     h1 {
-      margin-bottom: 1.5em;
+      text-align: center;
+      color: #007bff;
+      font-size: 1.4em;
+      margin-bottom: 1.2em;
+    }
+    p {
       color: #333;
-    }
-    label {
-      display: block;
-      text-align: left;
-      margin-top: 1em;
-      font-weight: 700;
-      color: #555;
-    }
-    input {
-      width: 100%;
-      padding: .7em;
-      margin-top: .3em;
       font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
+      margin-bottom: 1.2em;
     }
-    button {
-      margin-top: 1.5em;
-      padding: .8em 1.5em;
-      font-size: 1em;
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      width: 100%;
-      transition: background-color .3s ease;
+    ol {
+      padding-left: 1.2em;
     }
-    button:hover {
-      background-color: #0056b3;
+    li {
+      margin-bottom: .8em;
     }
-    #status {
-      margin-top: 1em;
-      color: #333;
-      font-size: .9em;
-    }
-    #status a {
+    a {
       color: #007bff;
       text-decoration: underline;
+      word-break: break-all;
     }
-    #status a:hover {
+    a:hover {
       color: #0056b3;
     }
-    pre {
-      text-align: left;
-      background: #f7f7f7;
-      padding: 1em;
+    .note {
+      background: #f9f9f9;
+      border-left: 4px solid #007bff;
+      padding: 0.8em 1em;
       border-radius: 6px;
-      font-size: .85em;
-      margin-top: 1em;
+      margin: 1.2em 0;
+      font-size: 0.95em;
+      color: #444;
+    }
+    #contact-link {
+      text-align: center;
+      margin-top: 1.5em;
+      font-size: .9em;
+      background: #f0f7ff;
+      border-radius: 8px;
+      padding: 1em;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>結果PDFが表示されない！</h1>
-  　<p>大丈夫です！表示されない原因はいくつか考えられます！<br><br> 1. Line等から開いている(頻出) <br> 2. Javascriptを無効化している </p>
+    <h1>📄 結果PDFが表示されないとき</h1>
 
-    <p>【1.Line等から開いている場合】https://sh-shaken.github.io/login.html ←こちらをコピーし、通常のブラウザにペーストすることで結果が表示されます！</p>
-    <p>【2.Javascriptを無効化している場合】ブラウザの設定より、Javascriptを有効化してください！</p>
-　　
-    <p id="contact-link" style="display:none;margin-top:1em;font-size:.9em">
-      それでも解決できないときはこちらへ！↓<br>
-      <a href="https://forms.gle/653SgnhWdSB2ABk58" target="_blank">お問い合わせフォーム</a>からご連絡ください。
+    <p>大丈夫です！いくつかの原因と解決方法をご紹介します。</p>
+
+    <div class="note">
+      <strong>よくある原因：</strong>
+      <ol>
+        <li>LINEなどのアプリ内ブラウザから開いている</li>
+        <li>JavaScriptが無効化されている</li>
+      </ol>
+    </div>
+
+    <p><strong>【1】LINE等から開いている場合</strong><br>
+      下のリンクをコピーして、通常のブラウザ（例：Chrome、Safariなど）に貼り付けてください。<br>
+      <a href="https://sh-shaken.github.io/login.html" target="_blank">
+        https://sh-shaken.github.io/login.html
+      </a>
     </p>
 
+    <p><strong>【2】JavaScriptを無効化している場合</strong><br>
+      ブラウザの設定から「JavaScriptを有効化」してください。<br>
+      設定方法はブラウザごとに異なりますので、「ブラウザ名 JavaScript 有効化」で検索すると手順がわかります。
     </p>
+
+    <div id="contact-link">
+      それでも解決しない場合は、<br>
+      <a href="https://forms.gle/653SgnhWdSB2ABk58" target="_blank">お問い合わせフォーム</a><br>
+      からご連絡ください。
+    </div>
   </div>
-
- 
 </body>
 </html>
