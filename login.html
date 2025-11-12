@@ -1,151 +1,271 @@
-<!doctypehtml><html lang=ja><meta charset=UTF-8><meta content="width=device-width,initial-scale=1"name=viewport><title>結果受け取りページ</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap"rel=stylesheet><script src=https://unpkg.com/pdf-lib/dist/pdf-lib.min.js></script><script src=https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.js></script><style>body{font-family:'Noto Sans JP',sans-serif;background-color:#f0f2f5;margin:0;padding:0;display:flex;justify-content:center;align-items:center;height:100vh}.container{background-color:#fff;padding:2em;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.1);max-width:400px;width:90%;text-align:center}h1{margin-bottom:1.5em;color:#333}label{display:block;text-align:left;margin-top:1em;font-weight:700;color:#555}input{width:100%;padding:.7em;margin-top:.3em;font-size:1em;border:1px solid #ccc;border-radius:6px;box-sizing:border-box}button{margin-top:1.5em;padding:.8em 1.5em;font-size:1em;background-color:#007bff;color:#fff;border:none;border-radius:6px;cursor:pointer;width:100%;transition:background-color .3s ease}button:hover{background-color:#0056b3}#status{margin-top:1em;color:#333;font-size:.9em}pre{text-align:left;background:#f7f7f7;padding:1em;border-radius:6px;font-size:.85em;margin-top:1em}</style><div class=container><h1>結果を受け取る！</h1><form onsubmit=handleLogin(event)><label for=number>番号 (1〜4桁の半角数字):</label> <input id=number name=number pattern=^\d{1,4}$ required title=1〜4桁の半角数字を入力してください> <label for=password>パスワード (4桁の半角数字):</label> <input id=password name=password pattern=^\d{4}$ required title=4桁の半角数字を入力してください> <button type=submit>送信</button></form><p id=status><p id=contact-link style=display:none;margin-top:1em;font-size:.9em>お困りですか？<br><a href=https://forms.gle/653SgnhWdSB2ABk58 target=_blank>お問い合わせフォーム</a>からご連絡ください。<p id=pdf-link style=display:none;margin-top:1em;font-size:.9em>※あなたの結果はすでにこのサイトに書かれてあります。結果用紙のテンプレートをご覧になりたい場合は、<br><a href="https://drive.google.com/file/d/12OyZ564bCkghZswXcJsK2VGt81xDqE-2/view?usp=sharing"target=_blank>こちらをクリックしてください。</div><script>const GAS_URL = 'https://script.google.com/macros/s/AKfycbySpS77YtVFI8Cv91PvDTsdvuAKnVOqLTgSwfGgV0bXIcs-AsHHmaW1KLraO3I5Zk4/exec';
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width,initial-scale=1" name="viewport">
+  <title>結果受け取りページ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script src="https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.js"></script>
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: #fff;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.1);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 1.5em;
+      color: #333;
+    }
+    label {
+      display: block;
+      text-align: left;
+      margin-top: 1em;
+      font-weight: 700;
+      color: #555;
+    }
+    input {
+      width: 100%;
+      padding: .7em;
+      margin-top: .3em;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 1.5em;
+      padding: .8em 1.5em;
+      font-size: 1em;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color .3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #status {
+      margin-top: 1em;
+      color: #333;
+      font-size: .9em;
+    }
+    #status a {
+      color: #007bff;
+      text-decoration: underline;
+    }
+    #status a:hover {
+      color: #0056b3;
+    }
+    pre {
+      text-align: left;
+      background: #f7f7f7;
+      padding: 1em;
+      border-radius: 6px;
+      font-size: .85em;
+      margin-top: 1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>結果を受け取る！</h1>
+    <form onsubmit="handleLogin(event)">
+      <label for="number">番号 (1〜4桁の半角数字):</label>
+      <input id="number" name="number" pattern="^\d{1,4}$" required title="1〜4桁の半角数字を入力してください">
+      <label for="password">パスワード (4桁の半角数字):</label>
+      <input id="password" name="password" pattern="^\d{4}$" required title="4桁の半角数字を入力してください">
+      <button type="submit">送信</button>
+    </form>
+    <p id="status"></p>
+    <p id="contact-link" style="display:none;margin-top:1em;font-size:.9em">
+      お困りですか？<br>
+      <a href="https://forms.gle/653SgnhWdSB2ABk58" target="_blank">お問い合わせフォーム</a>からご連絡ください。
+    </p>
+    <p id="pdf-link" style="display:none;margin-top:1em;font-size:.9em">
+      ※あなたの結果はすでに下に書かれてあります。<br>
+      結果用紙のテンプレートをご覧になりたい場合は、<br>
+      <a href="https://drive.google.com/file/d/12OyZ564bCkghZswXcJsK2VGt81xDqE-2/view?usp=sharing" target="_blank">
+        こちらをクリックしてください。
+      </a>
+    </p>
+  </div>
+
+  <!-- JavaScriptが無効な場合に表示 -->
+  <noscript>
+    <div style="padding:1em; text-align:center; color:red; font-weight:bold;">
+      【注意】JavaScriptが無効になっています。<br>
+      ブラウザ設定からJavaScriptを有効にしてください。
+    　詳しいやり方はブラウザによって異なりますので、各自で調べてくれると助かります。
+    </div>
+  </noscript>
+
+  <script>
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbySpS77YtVFI8Cv91PvDTsdvuAKnVOqLTgSwfGgV0bXIcs-AsHHmaW1KLraO3I5Zk4/exec';
     const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
     const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Bold.ttf';
 
     function handleLogin(event) {
       event.preventDefault();
+      const status = document.getElementById('status');
+      const contact = document.getElementById('contact-link');
+      const pdfLink = document.getElementById('pdf-link');
 
-    const status = document.getElementById('status');
-    const contact = document.getElementById('contact-link');
-    const pdfLink = document.getElementById('pdf-link');
+      if (!navigator.onLine) {
+        status.textContent = "ネットワークに接続されていません。Wi-Fiや通信状況を確認してください。";
+        contact.style.display = 'block';
+        pdfLink.style.display = 'block';
+        return;
+      }
 
-    if (!navigator.onLine) {
-      status.textContent = "ネットワークに接続されていません。Wi-Fiや通信状況を確認してください。";
-      contact.style.display = 'block';
-      pdfLink.style.display = 'block';
-      return;
+      const number = document.getElementById('number').value.trim().replace(/^0+/, '');
+      const password = document.getElementById('password').value.trim();
+      status.textContent = "番号とパスワードを照合しています...";
+      contact.style.display = 'none';
+      pdfLink.style.display = 'none';
+
+      const existing = document.getElementById('jsonpScript');
+      if (existing) existing.remove();
+
+      const script = document.createElement('script');
+      script.id = 'jsonpScript';
+      script.src = `${GAS_URL}?id=${encodeURIComponent(number)}&pw=${encodeURIComponent(password)}&callback=handleJSONPResponse`;
+
+      script.onerror = () => {
+        status.textContent = "サーバーに接続できませんでした。";
+        contact.style.display = 'block';
+        pdfLink.style.display = 'block';
+      };
+
+      document.body.appendChild(script);
     }
 
-    const number = document.getElementById('number').value.trim().replace(/^0+/, '');
-    const password = document.getElementById('password').value.trim();
+    async function handleJSONPResponse(result) {
+      const status = document.getElementById('status');
+      const contact = document.getElementById('contact-link');
+      const pdfLink = document.getElementById('pdf-link');
 
-    status.textContent = "番号とパスワードを照合しています...";
-    contact.style.display = 'none';
-    pdfLink.style.display = 'none';
-  
-    const existing = document.getElementById('jsonpScript');
-    if (existing) existing.remove();
+      if (!result.success) {
+        status.textContent = "番号またはパスワードが一致しません。";
+        contact.style.display = 'block';
+        pdfLink.style.display = 'block';
+        return;
+      }
 
-    const script = document.createElement('script');
-    script.id = 'jsonpScript';
-    script.src = `${GAS_URL}?id=${encodeURIComponent(number)}&pw=${encodeURIComponent(password)}&callback=handleJSONPResponse`;
+      const logLines = Object.entries(result)
+        .filter(([k]) => k !== "success")
+        .map(([key, val]) => `${key}: ${val}`)
+        .join("\n");
 
-    // --- タイムアウト処理 ---
-    const timeout = setTimeout(() => {
-      script.remove();
-      status.textContent = "通信がタイムアウトしました。ネットワーク接続をご確認ください。";
-      contact.style.display = 'block';
-      pdfLink.style.display = 'block';
-    }, 60000); // 60秒
+      const pre = document.createElement('pre');
+      pre.textContent = "【取得データログ】\n" + logLines;
+      document.querySelector('.container').appendChild(pre);
 
-    // --- ネットワークエラー処理 ---
-    script.onerror = () => {
-      clearTimeout(timeout);
-      status.textContent = "サーバーに接続できませんでした。ネットワークまたはシステムの障害の可能性があります。";
-      contact.style.display = 'block';
-      pdfLink.style.display = 'block';
-    };
+      try {
+        const url = await generatePDF(result);
 
-    document.body.appendChild(script);
-  }
-
-  async function handleJSONPResponse(result) {
-    const status = document.getElementById('status');
-    const contact = document.getElementById('contact-link');
-    const pdfLink = document.getElementById('pdf-link');
-
-    // タイムアウト無効化
-    clearTimeout(window.jsonpTimeout);
-
-    if (!result.success) {
-      status.textContent = "番号またはパスワードが一致しません。";
-      contact.style.display = 'block';
-      pdfLink.style.display = 'block';
-      return;
-    }
-
-    const logLines = Object.entries(result)
-      .filter(([k]) => k !== "success")
-      .map(([key, val]) => `${key}: ${val}`)
-      .join("\n");
-
-    const pre = document.createElement('pre');
-    pre.textContent = "【取得データログ】\n" + logLines;
-    document.querySelector('.container').appendChild(pre);
-
-    try {
-      await generatePDF(result);
-      status.textContent = "結果の生成が完了しました！心理テストにご協力いただき、ありがとうございました！";
-    } catch (err) {
-      console.error("PDF生成エラー:", err);
-      status.textContent = "結果PDFの生成中にエラーが発生しました。";
-      contact.style.display = 'block';
-      pdfLink.style.display = 'block';
-    }
-  }
-
-  async function generatePDF(userData) {
-    const [pdfBytes, fontBytes] = await Promise.all([
-      fetch(PDF_TEMPLATE_URL).then(res => res.arrayBuffer()),
-      fetch(FONT_URL).then(res => res.arrayBuffer())
-    ]);
-
-    const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
-    pdfDoc.registerFontkit(window.fontkit);
-    const customFont = await pdfDoc.embedFont(fontBytes);
-    const pages = pdfDoc.getPages();
-
-    const positionsPage1 = {
-      ID:    { x: 503, y: 772 },
-      左脳:  { x: 200, y: 648 },
-      右脳:  { x: 350, y: 648 },
-      学生:  { x: 62.5,  y: 310 },
-    };
-
-    const positionsPage2 = {
-      CP:  { x: 90, y: 505 },
-      NP:  { x: 90, y: 460 },
-      A:   { x: 90, y: 418 },
-      FC:  { x: 90, y: 377 },
-      AC:  { x: 90, y: 335 },
-    };
-
-    const page1 = pages[0];
-    for (const key in positionsPage1) {
-      const val = userData[key];
-      if (val !== undefined) {
-        page1.drawText(String(val), {
-          x: positionsPage1[key].x,
-          y: positionsPage1[key].y,
-          size: (key === 'ID' || key === '学生') ? 14 : 40,
-          font: customFont,
-          color: PDFLib.rgb(1, 0, 0),
-        });
+        // 成功メッセージ + 代替リンク
+        status.innerHTML = `
+          結果の生成が完了しました！心理テストにご協力いただき、ありがとうございました！<br><br>
+          <small>※LINEからアクセスしている場合、PDFが自動で開かない場合があります。</small><br>
+          <a href="${url}" target="_blank">👉 PDFが表示されない場合はこちらをタップ</a>
+        `;
+      } catch (err) {
+        console.error("PDF生成エラー:", err);
+        status.textContent = "結果PDFの生成中にエラーが発生しました。";
+        contact.style.display = 'block';
+        pdfLink.style.display = 'block';
       }
     }
 
-    if (pages.length >= 2) {
-      const page2 = pages[1];
-      for (const key in positionsPage2) {
+    async function generatePDF(userData) {
+      const [pdfBytes, fontBytes] = await Promise.all([
+        fetch(PDF_TEMPLATE_URL).then(res => res.arrayBuffer()),
+        fetch(FONT_URL).then(res => res.arrayBuffer())
+      ]);
+
+      const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+      pdfDoc.registerFontkit(window.fontkit);
+      const customFont = await pdfDoc.embedFont(fontBytes);
+      const pages = pdfDoc.getPages();
+
+      const positionsPage1 = {
+        ID:    { x: 503, y: 772 },
+        左脳:  { x: 200, y: 648 },
+        右脳:  { x: 350, y: 648 },
+        学生:  { x: 62.5,  y: 310 },
+      };
+
+      const positionsPage2 = {
+        CP:  { x: 90, y: 505 },
+        NP:  { x: 90, y: 460 },
+        A:   { x: 90, y: 418 },
+        FC:  { x: 90, y: 377 },
+        AC:  { x: 90, y: 335 },
+      };
+
+      const page1 = pages[0];
+      for (const key in positionsPage1) {
         const val = userData[key];
         if (val !== undefined) {
-          page2.drawText(String(val), {
-            x: positionsPage2[key].x,
-            y: positionsPage2[key].y,
-            size: 20,
+          page1.drawText(String(val), {
+            x: positionsPage1[key].x,
+            y: positionsPage1[key].y,
+            size: (key === 'ID' || key === '学生') ? 14 : 40,
             font: customFont,
             color: PDFLib.rgb(1, 0, 0),
           });
         }
       }
+
+      if (pages.length >= 2) {
+        const page2 = pages[1];
+        for (const key in positionsPage2) {
+          const val = userData[key];
+          if (val !== undefined) {
+            page2.drawText(String(val), {
+              x: positionsPage2[key].x,
+              y: positionsPage2[key].y,
+              size: 20,
+              font: customFont,
+              color: PDFLib.rgb(1, 0, 0),
+            });
+          }
+        }
+      }
+
+      const pdfBytesOut = await pdfDoc.save();
+      const blob = new Blob([pdfBytesOut], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+
+      // 自動ダウンロード（ただしLINEでは動作しない）
+      try {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${userData['ID'] || 'output'}.pdf`;
+        a.click();
+      } catch {}
+
+      // URLを返す（上でリンク表示に使用）
+      return url;
     }
-
-    const pdfBytesOut = await pdfDoc.save();
-    const blob = new Blob([pdfBytesOut], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${userData['ID'] || 'output'}.pdf`;
-    a.click();
-  }</script>
+  </script>
+</body>
+</html>
