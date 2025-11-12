@@ -44,7 +44,7 @@ button {
 
 /* コピーボタン（青） */
 .copy-button {
-  background-color: rgba(0,123,255,.5); /* 初期は薄い青 */
+  background-color: rgba(0,123,255,.5); /* 初期は薄青 */
 }
 .copy-button.loaded {
   background-color: #007bff; /* 番号取得後は明るい青 */
@@ -70,10 +70,10 @@ button {
   <h1 id="status-message">あなたの番号を発行しています...</h1>
   <div class="label">番号:</div>
   <div class="code" id="number">読み込み中...</div>
-  <button class="copy-button" onclick="copyNumber()">番号をコピーする</button>
+  <button class="copy-button" id="copyButton">もう少し待てば、番号コピーできます...</button>
   <p class="note">※受付より番号札が既に配られている場合、この番号は必要ありません。</p>
-  <p class="note">※この番号をコピー、または画面をスクリーンショットしてください。コピーまたはスクリーンショットしたら次に進んでください。↓</p>
-  <button class="test-button" onclick="goToTest()">心理テストを受ける！</button>
+  <p class="note">※この番号はコピー、または画面をスクリーンショットしてください。コピーまたはスクリーンショットしたら次に進んでください。↓</p>
+  <button class="test-button" id="testButton">心理テストを受ける！</button>
 </div>
 
 <script>
@@ -105,37 +105,41 @@ function getRandomAvailableNumber(candidates, used) {
 }
 
 (async () => {
+  const numberDisplay = document.getElementById('number');
+  const statusMessage = document.getElementById('status-message');
+  const copyButton = document.getElementById('copyButton');
+  const testButton = document.getElementById('testButton');
+
   const usedNumbers = await fetchUsedNumbers();
   const candidates = generateCandidateNumbers();
   const number = getRandomAvailableNumber(candidates, usedNumbers);
 
-  const numberDisplay = document.getElementById('number');
-  const statusMessage = document.getElementById('status-message');
-  const copyButton = document.querySelector('.copy-button');
-  const testButton = document.querySelector('.test-button');
-
   if (!number) {
     numberDisplay.textContent = "番号が取得できませんでした";
-    if (statusMessage) statusMessage.textContent = "番号の発行に失敗しました";
+    statusMessage.textContent = "番号の発行に失敗しました";
     return;
   }
 
   numberDisplay.textContent = number;
-  if (statusMessage) statusMessage.textContent = "あなたの番号が発行されました！";
+  statusMessage.textContent = "あなたの番号が発行されました！";
 
-  // 番号取得後に青ボタンを明るく
+  // 番号取得後に青ボタンを明るく＆文字変更
   copyButton.classList.add('loaded');
+  copyButton.textContent = "番号をコピーする";
 
-  window.copyNumber = function () {
+  copyButton.onclick = function() {
     navigator.clipboard.writeText(number)
       .then(() => {
         alert("番号をコピーしました: " + number);
-        // コピー後に紫ボタンを濃く
+        // 青ボタンを初期状態に戻す
+        copyButton.classList.remove('loaded');
+        copyButton.textContent = "もう少し待てば、番号コピーできます...";
+        // 紫ボタンを濃く
         testButton.classList.add('clicked');
       });
   };
 
-  window.goToTest = function () {
+  testButton.onclick = function() {
     window.open("https://forms.gle/tqunfGCxAHUfWJHG9", "_blank");
   };
 })();
