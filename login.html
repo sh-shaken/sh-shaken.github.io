@@ -82,16 +82,33 @@
       font-size: .85em;
       margin-top: 1em;
     }
+    noscript {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #ffcccc;
+      color: #900;
+      font-weight: bold;
+      padding: 1em;
+      text-align: center;
+      z-index: 9999;
+    }
   </style>
 </head>
 <body>
+  <noscript>
+    【注意】JavaScriptが無効になっています。<br>
+    結果を表示・取得するには、ブラウザ設定でJavaScriptを有効にしてください。
+  </noscript>
+
   <div class="container">
     <h1>結果を受け取る！</h1>
     <form onsubmit="handleLogin(event)">
       <label for="number">番号 (1〜4桁の半角数字):</label>
-      <input id="number" name="number" pattern="^\d{1,4}$" required title="1〜4桁の半角数字を入力してください">
+      <input id="number" name="number" pattern="^\\d{1,4}$" required title="1〜4桁の半角数字を入力してください">
       <label for="password">パスワード (4桁の半角数字):</label>
-      <input id="password" name="password" pattern="^\d{4}$" required title="4桁の半角数字を入力してください">
+      <input id="password" name="password" pattern="^\\d{4}$" required title="4桁の半角数字を入力してください">
       <button type="submit">送信</button>
     </form>
     <p id="status"></p>
@@ -100,22 +117,11 @@
       <a href="https://forms.gle/653SgnhWdSB2ABk58" target="_blank">お問い合わせフォーム</a>からご連絡ください。
     </p>
     <p id="pdf-link" style="display:none;margin-top:1em;font-size:.9em">
-      ※あなたの結果はすでに下に書かれてあります。<br>
+      ※あなたの結果はすでに下に書かれています。<br>
       結果用紙のテンプレートをご覧になりたい場合は、<br>
-      <a href="https://drive.google.com/file/d/12OyZ564bCkghZswXcJsK2VGt81xDqE-2/view?usp=sharing" target="_blank">
-        こちらをクリックしてください。
-      </a>
+      <a href="https://drive.google.com/file/d/12OyZ564bCkghZswXcJsK2VGt81xDqE-2/view?usp=sharing" target="_blank">こちらをクリック</a>してください。
     </p>
   </div>
-
-  <!-- JavaScriptが無効な場合に表示 -->
-  <noscript>
-    <div style="padding:1em; text-align:center; color:red; font-weight:bold;">
-      【注意】JavaScriptが無効になっています。<br>
-      ブラウザ設定からJavaScriptを有効にしてください。
-    　詳しいやり方はブラウザによって異なりますので、各自で調べてくれると助かります。
-    </div>
-  </noscript>
 
   <script>
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbySpS77YtVFI8Cv91PvDTsdvuAKnVOqLTgSwfGgV0bXIcs-AsHHmaW1KLraO3I5Zk4/exec';
@@ -137,6 +143,7 @@
 
       const number = document.getElementById('number').value.trim().replace(/^0+/, '');
       const password = document.getElementById('password').value.trim();
+
       status.textContent = "番号とパスワードを照合しています...";
       contact.style.display = 'none';
       pdfLink.style.display = 'none';
@@ -149,7 +156,7 @@
       script.src = `${GAS_URL}?id=${encodeURIComponent(number)}&pw=${encodeURIComponent(password)}&callback=handleJSONPResponse`;
 
       script.onerror = () => {
-        status.textContent = "サーバーに接続できませんでした。";
+        status.textContent = "サーバーに接続できませんでした。時間をおいて再試行してください。";
         contact.style.display = 'block';
         pdfLink.style.display = 'block';
       };
@@ -165,7 +172,7 @@
       if (!result.success) {
         status.textContent = "番号またはパスワードが一致しません。";
         contact.style.display = 'block';
-        pdfLink.style.display = 'block';
+        pdfLink.style.display = 'none';
         return;
       }
 
@@ -180,16 +187,14 @@
 
       try {
         const url = await generatePDF(result);
-
-        // 成功メッセージ + 代替リンク
         status.innerHTML = `
           結果の生成が完了しました！心理テストにご協力いただき、ありがとうございました！<br><br>
           <small>※LINEからアクセスしている場合、PDFが自動で開かない場合があります。</small><br>
-          <a href="https://sh-shaken.github.io/errorpdf.html" target="_blank"> PDFが表示されない場合はこちらをタップ</a>
+          <a href="https://sh-shaken.github.io/errorpdf.html" target="_blank">▶ PDFが表示されない場合はこちら</a>
         `;
       } catch (err) {
         console.error("PDF生成エラー:", err);
-        status.textContent = "結果PDFの生成中にエラーが発生しました。";
+        status.textContent = "結果データは取得できましたが、PDF生成中にエラーが発生しました。";
         contact.style.display = 'block';
         pdfLink.style.display = 'block';
       }
@@ -255,7 +260,7 @@
       const blob = new Blob([pdfBytesOut], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
 
-      // 自動ダウンロード（ただしLINEでは動作しない）
+      // 自動ダウンロード（LINEでは動作しない可能性あり）
       try {
         const a = document.createElement('a');
         a.href = url;
@@ -263,7 +268,6 @@
         a.click();
       } catch {}
 
-      // URLを返す（上でリンク表示に使用）
       return url;
     }
   </script>
