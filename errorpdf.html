@@ -125,6 +125,24 @@
       からご連絡ください。
     </div>
   </div>
+  <script>
+  function copyLink() {
+    const text = "https://sh-shaken.github.io/login.html";
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector('.copy-button');
+      const originalText = btn.textContent;
+      btn.textContent = "コピーしました！";
+      btn.style.backgroundColor = "#28a745"; // 緑に変更
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.backgroundColor = "#007bff"; // 元の青に戻す
+      }, 2000);
+    }).catch(err => {
+      alert("コピーに失敗しました: " + err);
+    });
+  }
+</script>
+
 </body>
 </html>
 
