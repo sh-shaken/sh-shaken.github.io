@@ -3,36 +3,70 @@
 <head>
   <meta charset="UTF-8">
   <meta content="width=device-width,initial-scale=1" name="viewport">
-  <title>結果PDFが表示されない！</title>
+  <title>結果PDFが表示されないときの対処法</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Noto Sans JP', sans-serif;
-      background-color: #f0f2f5;
+      background-color: #f0f4f8;
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
+      align-items: flex-start;
+      min-height: 100vh;
     }
     .container {
       background-color: #fff;
-      padding: 2em;
+      padding: 2em 1.5em;
       border-radius: 12px;
       box-shadow: 0 4px 16px rgba(0,0,0,.1);
-      max-width: 400px;
+      max-width: 500px;
       width: 90%;
-      text-align: center;
+      margin: 2em auto;
+      line-height: 1.8;
     }
     h1 {
-      margin-bottom: 1.5em;
-      color: #333;
+      text-align: center;
+      color: #007bff;
+      font-size: 1.4em;
+      margin-bottom: 1.2em;
     }
     p {
-      color: #444;
+      color: #333;
+      font-size: 1em;
+      margin-bottom: 1.2em;
+    }
+    ol {
+      padding-left: 1.2em;
+    }
+    li {
+      margin-bottom: .8em;
+    }
+    a {
+      color: #007bff;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+    a:hover {
+      color: #0056b3;
+    }
+    .note {
+      background: #f9f9f9;
+      border-left: 4px solid #007bff;
+      padding: 0.8em 1em;
+      border-radius: 6px;
+      margin: 1.2em 0;
       font-size: 0.95em;
-      line-height: 1.6;
+      color: #444;
+    }
+    #contact-link {
+      text-align: center;
+      margin-top: 1.5em;
+      font-size: .9em;
+      background: #f0f7ff;
+      border-radius: 8px;
+      padding: 1em;
     }
     .copy-box {
       background: #f7f7f7;
@@ -57,62 +91,40 @@
     .copy-button:hover {
       background-color: #0056b3;
     }
-    #contact-link {
-      margin-top: 1.2em;
-      font-size: .9em;
-    }
-    #contact-link a {
-      color: #007bff;
-      text-decoration: underline;
-    }
-    #contact-link a:hover {
-      color: #0056b3;
-    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>結果PDFが表示されない！</h1>
-    <p>大丈夫です！表示されない原因はいくつか考えられます！<br><br>
-      1. Line等から開いている(頻出)<br>
-      2. Javascriptを無効化している
-    </p>
+    <h1>📄 結果PDFが表示されないとき</h1>
 
-    <p><strong>【1.Line等から開いている場合】</strong><br>
-      下のリンクをコピーし、通常のブラウザにペーストすることで結果が表示されます！
-    </p>
+    <p>大丈夫です！いくつかの原因と解決方法をご紹介します。</p>
 
+    <div class="note">
+      <strong>よくある原因：</strong>
+      <ol>
+        <li>LINEなどのアプリ内ブラウザから開いている</li>
+        <li>JavaScriptが無効化されている</li>
+      </ol>
+    </div>
+
+    <p><strong>【1】LINE等から開いている場合</strong><br>
+      下のリンクをコピーして、通常のブラウザ（例：Chrome、Safariなど）に貼り付けてください！</p>
     <div class="copy-box">
       https://sh-shaken.github.io/login.html<br>
       <button class="copy-button" onclick="copyLink()">リンクをコピー</button>
     </div>
 
-    <p><strong>【2.Javascriptを無効化している場合】</strong><br>
-      ブラウザの設定より、Javascriptを有効化してください！
+    <p><strong>【2】JavaScriptを無効化している場合</strong><br>
+      ブラウザの設定から「JavaScriptを有効化」してください。<br>
+      設定方法はブラウザごとに異なりますので、「ブラウザ名 JavaScript 有効化」で検索すると手順がわかります。
     </p>
 
-    <p id="contact-link">
-      それでも解決できないときはこちらへ！↓<br>
-      <a href="https://forms.gle/653SgnhWdSB2ABk58" target="_blank">お問い合わせフォーム</a>からご連絡ください。
-    </p>
+    <div id="contact-link">
+      それでも解決しない場合は、<br>
+      <a href="https://forms.gle/653SgnhWdSB2ABk58" target="_blank">お問い合わせフォーム</a><br>
+      からご連絡ください。
+    </div>
   </div>
-
-  <script>
-    function copyLink() {
-      const text = "https://sh-shaken.github.io/login.html";
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.querySelector('.copy-button');
-        const originalText = btn.textContent;
-        btn.textContent = "コピーしました！";
-        btn.style.backgroundColor = "#28a745";
-        setTimeout(() => {
-          btn.textContent = originalText;
-          btn.style.backgroundColor = "#007bff";
-        }, 2000);
-      }).catch(err => {
-        alert("コピーに失敗しました: " + err);
-      });
-    }
-  </script>
 </body>
 </html>
+
