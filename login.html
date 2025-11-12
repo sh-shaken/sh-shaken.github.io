@@ -106,9 +106,9 @@
     <h1>結果を受け取る！</h1>
     <form onsubmit="handleLogin(event)">
       <label for="number">番号 (1〜4桁の半角数字):</label>
-      <input id="number" name="number" pattern="^\\d{1,4}$" required title="1〜4桁の半角数字を入力してください">
-      <label for="password">パスワード (4桁の半角数字):</label>
-      <input id="password" name="password" pattern="^\\d{4}$" required title="4桁の半角数字を入力してください">
+      <input id=number name=number pattern=^\d{1,4}$ required title=1〜4桁の半角数字を入力してください> 
+      <label for=password>パスワード (4桁の半角数字):</label> 
+      <input id=password name=password pattern=^\d{4}$ required title=4桁の半角数字を入力してください>
       <button type="submit">送信</button>
     </form>
     <p id="status"></p>
