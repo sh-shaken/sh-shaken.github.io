@@ -26,43 +26,39 @@
       text-align: center;
     }
     h1 {
-      margin-bottom: 1em;
+      margin-bottom: 1.5em;
       color: #333;
-      font-size: 1.3em;
     }
     p {
       color: #444;
-      font-size: .95em;
+      font-size: 0.95em;
       line-height: 1.6;
-      margin-bottom: 1em;
     }
     .copy-box {
       background: #f7f7f7;
       border: 1px solid #ccc;
-      padding: .8em;
+      padding: .6em;
       border-radius: 6px;
       margin-top: .5em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: .9em;
+      font-size: 0.9em;
       word-break: break-all;
     }
-    button {
+    .copy-button {
       background-color: #007bff;
       color: #fff;
       border: none;
-      padding: .5em 1em;
+      padding: .4em .8em;
       border-radius: 6px;
       cursor: pointer;
-      font-size: .85em;
-      transition: background-color .3s ease;
+      font-size: 0.85em;
+      margin-top: 0.5em;
+      transition: background-color 0.3s ease;
     }
-    button:hover {
+    .copy-button:hover {
       background-color: #0056b3;
     }
     #contact-link {
-      margin-top: 1.5em;
+      margin-top: 1.2em;
       font-size: .9em;
     }
     #contact-link a {
@@ -77,38 +73,40 @@
 <body>
   <div class="container">
     <h1>結果PDFが表示されない！</h1>
-    <p>大丈夫です！表示されない原因をいくつか教えます！</p>
-    <p>① LINEなどから開いている（最も多い!!）<br>② JavaScriptを無効化している</p>
-
-    <p><strong>【① LINEなどから開いている場合】</strong><br>
-      下のリンクをコピーして、<br>通常のブラウザにペーストしてください。
+    <p>大丈夫です！表示されない原因はいくつか考えられます！<br><br>
+      1. Line等から開いている(頻出)<br>
+      2. Javascriptを無効化している
     </p>
 
-    <div class="copy-box" id="copy-area">
-      https://sh-shaken.github.io/login.html
-      <button onclick="copyToClipboard()">コピー</button>
+    <p><strong>【1.Line等から開いている場合】</strong><br>
+      下のリンクをコピーし、通常のブラウザにペーストすることで結果が表示されます！
+    </p>
+
+    <div class="copy-box">
+      https://sh-shaken.github.io/login.html<br>
+      <button class="copy-button" onclick="copyLink()">リンクをコピー</button>
     </div>
 
-    <p><strong>【② JavaScriptを無効化している場合】</strong><br>
-      ブラウザの設定から JavaScript を有効化してください。
+    <p><strong>【2.Javascriptを無効化している場合】</strong><br>
+      ブラウザの設定より、Javascriptを有効化してください！
     </p>
 
     <p id="contact-link">
-      それでも解決できない場合は、<br>
+      それでも解決できないときはこちらへ！↓<br>
       <a href="https://forms.gle/653SgnhWdSB2ABk58" target="_blank">お問い合わせフォーム</a>からご連絡ください。
     </p>
   </div>
 
   <script>
-    function copyToClipboard() {
+    function copyLink() {
       const text = "https://sh-shaken.github.io/login.html";
       navigator.clipboard.writeText(text).then(() => {
-        const btn = document.querySelector('button');
-        const original = btn.innerText;
-        btn.innerText = "コピーしました！";
+        const btn = document.querySelector('.copy-button');
+        const originalText = btn.textContent;
+        btn.textContent = "コピーしました！";
         btn.style.backgroundColor = "#28a745";
         setTimeout(() => {
-          btn.innerText = original;
+          btn.textContent = originalText;
           btn.style.backgroundColor = "#007bff";
         }, 2000);
       }).catch(err => {
