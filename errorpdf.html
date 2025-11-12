@@ -3,104 +3,118 @@
 <head>
   <meta charset="UTF-8">
   <meta content="width=device-width,initial-scale=1" name="viewport">
-  <title>結果PDFが表示されないときの対処法</title>
+  <title>結果PDFが表示されない！</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Noto Sans JP', sans-serif;
-      background-color: #f0f4f8;
+      background-color: #f0f2f5;
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
+      align-items: center;
+      height: 100vh;
     }
     .container {
       background-color: #fff;
-      padding: 2em 1.5em;
+      padding: 2em;
       border-radius: 12px;
       box-shadow: 0 4px 16px rgba(0,0,0,.1);
-      max-width: 500px;
+      max-width: 400px;
       width: 90%;
-      margin: 2em auto;
-      line-height: 1.8;
+      text-align: center;
     }
     h1 {
-      text-align: center;
-      color: #007bff;
-      font-size: 1.4em;
-      margin-bottom: 1.2em;
+      margin-bottom: 1em;
+      color: #333;
+      font-size: 1.3em;
     }
     p {
-      color: #333;
-      font-size: 1em;
-      margin-bottom: 1.2em;
+      color: #444;
+      font-size: .95em;
+      line-height: 1.6;
+      margin-bottom: 1em;
     }
-    ol {
-      padding-left: 1.2em;
-    }
-    li {
-      margin-bottom: .8em;
-    }
-    a {
-      color: #007bff;
-      text-decoration: underline;
+    .copy-box {
+      background: #f7f7f7;
+      border: 1px solid #ccc;
+      padding: .8em;
+      border-radius: 6px;
+      margin-top: .5em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .9em;
       word-break: break-all;
     }
-    a:hover {
-      color: #0056b3;
-    }
-    .note {
-      background: #f9f9f9;
-      border-left: 4px solid #007bff;
-      padding: 0.8em 1em;
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: .5em 1em;
       border-radius: 6px;
-      margin: 1.2em 0;
-      font-size: 0.95em;
-      color: #444;
+      cursor: pointer;
+      font-size: .85em;
+      transition: background-color .3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
     }
     #contact-link {
-      text-align: center;
       margin-top: 1.5em;
       font-size: .9em;
-      background: #f0f7ff;
-      border-radius: 8px;
-      padding: 1em;
+    }
+    #contact-link a {
+      color: #007bff;
+      text-decoration: underline;
+    }
+    #contact-link a:hover {
+      color: #0056b3;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>📄 結果PDFが表示されないとき</h1>
+    <h1>結果PDFが表示されない！</h1>
+    <p>大丈夫です！表示されない原因をいくつか教えます！</p>
+    <p>① LINEなどから開いている（最も多い!!）<br>② JavaScriptを無効化している</p>
 
-    <p>大丈夫です！いくつかの原因と解決方法をご紹介します。</p>
-
-    <div class="note">
-      <strong>よくある原因：</strong>
-      <ol>
-        <li>LINEなどのアプリ内ブラウザから開いている</li>
-        <li>JavaScriptが無効化されている</li>
-      </ol>
-    </div>
-
-    <p><strong>【1】LINE等から開いている場合</strong><br>
-      下のリンクをコピーして、通常のブラウザ（例：Chrome、Safariなど）に貼り付けてください。<br>
-      <a href="https://sh-shaken.github.io/login.html" target="_blank">
-        https://sh-shaken.github.io/login.html
-      </a>
+    <p><strong>【① LINEなどから開いている場合】</strong><br>
+      下のリンクをコピーして、<br>通常のブラウザにペーストしてください。
     </p>
 
-    <p><strong>【2】JavaScriptを無効化している場合</strong><br>
-      ブラウザの設定から「JavaScriptを有効化」してください。<br>
-      設定方法はブラウザごとに異なりますので、「ブラウザ名 JavaScript 有効化」で検索すると手順がわかります。
+    <div class="copy-box" id="copy-area">
+      https://sh-shaken.github.io/login.html
+      <button onclick="copyToClipboard()">コピー</button>
+    </div>
+
+    <p><strong>【② JavaScriptを無効化している場合】</strong><br>
+      ブラウザの設定から JavaScript を有効化してください。
     </p>
 
-    <div id="contact-link">
-      それでも解決しない場合は、<br>
-      <a href="https://forms.gle/653SgnhWdSB2ABk58" target="_blank">お問い合わせフォーム</a><br>
-      からご連絡ください。
-    </div>
+    <p id="contact-link">
+      それでも解決できない場合は、<br>
+      <a href="https://forms.gle/653SgnhWdSB2ABk58" target="_blank">お問い合わせフォーム</a>からご連絡ください。
+    </p>
   </div>
+
+  <script>
+    function copyToClipboard() {
+      const text = "https://sh-shaken.github.io/login.html";
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('button');
+        const original = btn.innerText;
+        btn.innerText = "コピーしました！";
+        btn.style.backgroundColor = "#28a745";
+        setTimeout(() => {
+          btn.innerText = original;
+          btn.style.backgroundColor = "#007bff";
+        }, 2000);
+      }).catch(err => {
+        alert("コピーに失敗しました: " + err);
+      });
+    }
+  </script>
 </body>
 </html>
