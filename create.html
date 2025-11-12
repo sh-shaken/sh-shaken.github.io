@@ -1,53 +1,144 @@
-<!doctypehtml><html lang=ja><meta charset=UTF-8><meta content="width=device-width,initial-scale=1"name=viewport><title>番号を発行</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap"rel=stylesheet><style>*{box-sizing:border-box}body{font-family:'Noto Sans JP',sans-serif;background-color:#f8f9fa;margin:0;padding:0;display:flex;justify-content:center;align-items:center;height:100vh}.container{background-color:#fff;padding:2em;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.1);text-align:center;max-width:400px;width:90%}h1{margin-bottom:1em;color:#333}.label{font-size:1em;color:#555;margin-top:1em}.code{font-size:2em;margin:.5em 0 1.2em 0;font-weight:700;color:#007bff}.note{font-size:.9em;color:#777}button{margin-top:1em;padding:.8em 1.5em;font-size:1em;color:#fff;border:none;border-radius:6px;cursor:pointer;transition:background-color .3s ease;width:100%}.copy-button{background-color:rgba(0,123,255,.5)}.copy-button:hover{background-color:rgba(0,86,179,1)}.test-button{background-color:#6f42c1}.test-button:hover{background-color:#5a32a3}</style><div class=container><h1 id=status-message>あなたの番号を発行しています...</h1><div class=label>番号:</div><div class=code id=number>読み込み中...</div><button class=copy-button onclick=copyNumber()>番号をコピーする</button><p class=note>※受付より番号札が既に配られている場合、この番号は必要ありません。<p class=note>※この番号はコピー、または画面をスクリーンショットしてください。コピーまたはスクリーンショットしたら次に進んでください。↓</p><button class=test-button onclick=goToTest()>心理テストを受ける！</button></div><script>async function fetchUsedNumbers() {
-      const usedURL = 'https://script.google.com/macros/s/AKfycbylN94TA9Mxxo4xIXnXMnbNmh3RjgytHQMGb1QsASQyBHpem5wJ-mLMT8PDmcAWaQXc/exec';
-      try {
-        const response = await fetch(usedURL);
-        if (!response.ok) throw new Error("ネットワークエラー");
-        return await response.json();
-      } catch (e) {
-        console.warn("使用済み番号の取得に失敗しました。ローカルで番号を生成します。");
-        return [];
-      }
-    }
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>番号を発行</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.container {
+  background-color: #fff;
+  padding: 2em;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.1);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+h1 { margin-bottom: 1em; color: #333; }
+.label { font-size: 1em; color: #555; margin-top: 1em; }
+.code { font-size: 2em; margin: .5em 0 1.2em 0; font-weight: 700; color: #007bff; }
+.note { font-size: .9em; color: #777; }
+button {
+  margin-top: 1em;
+  padding: .8em 1.5em;
+  font-size: 1em;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color .3s ease;
+  width: 100%;
+}
 
-    function generateCandidateNumbers() {
-      const numbers = [];
-      for (let i = 1000; i <= 1500; i++) numbers.push(String(i));
-      for (let i = 2001; i <= 9999; i++) numbers.push(String(i));
-      return numbers;
-    }
+/* コピーボタン（青） */
+.copy-button {
+  background-color: rgba(0,123,255,.5); /* 初期は薄い青 */
+}
+.copy-button.loaded {
+  background-color: #007bff; /* 番号取得後は明るい青 */
+}
+.copy-button:hover {
+  background-color: rgba(0,86,179,1);
+}
 
-    function getRandomAvailableNumber(candidates, used) {
-      const normalizedUsed = used.map(n => String(n).trim().replace(/^0+/, ""));
-      const available = candidates.filter(n => !normalizedUsed.includes(n));
-      if (available.length === 0) return null;
-      const randomIndex = Math.floor(Math.random() * available.length);
-      return available[randomIndex];
-    }
+/* 心理テストボタン（紫） */
+.test-button {
+  background-color: rgba(111,66,193,0.5); /* 初期は薄紫 */
+}
+.test-button.clicked {
+  background-color: #6f42c1; /* コピー後は濃い紫 */
+}
+.test-button:hover {
+  background-color: #5a32a3;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1 id="status-message">あなたの番号を発行しています...</h1>
+  <div class="label">番号:</div>
+  <div class="code" id="number">読み込み中...</div>
+  <button class="copy-button" onclick="copyNumber()">番号をコピーする</button>
+  <p class="note">※受付より番号札が既に配られている場合、この番号は必要ありません。</p>
+  <p class="note">※この番号をコピー、または画面をスクリーンショットしてください。コピーまたはスクリーンショットしたら次に進んでください。↓</p>
+  <button class="test-button" onclick="goToTest()">心理テストを受ける！</button>
+</div>
 
-    (async () => {
-      const usedNumbers = await fetchUsedNumbers();
-      const candidates = generateCandidateNumbers();
-      const number = getRandomAvailableNumber(candidates, usedNumbers);
+<script>
+async function fetchUsedNumbers() {
+  const usedURL = 'https://script.google.com/macros/s/AKfycbylN94TA9Mxxo4xIXnXMnbNmh3RjgytHQMGb1QsASQyBHpem5wJ-mLMT8PDmcAWaQXc/exec';
+  try {
+    const response = await fetch(usedURL);
+    if (!response.ok) throw new Error("ネットワークエラー");
+    return await response.json();
+  } catch (e) {
+    console.warn("使用済み番号の取得に失敗しました。ローカルで番号を生成します。");
+    return [];
+  }
+}
 
-      const numberDisplay = document.getElementById('number');
-      const statusMessage = document.getElementById('status-message');
+function generateCandidateNumbers() {
+  const numbers = [];
+  for (let i = 1000; i <= 1500; i++) numbers.push(String(i));
+  for (let i = 2001; i <= 9999; i++) numbers.push(String(i));
+  return numbers;
+}
 
-      if (!number) {
-        numberDisplay.textContent = "番号が取得できませんでした";
-        if (statusMessage) statusMessage.textContent = "番号の発行に失敗しました";
-        return;
-      }
+function getRandomAvailableNumber(candidates, used) {
+  const normalizedUsed = used.map(n => String(n).trim().replace(/^0+/, ""));
+  const available = candidates.filter(n => !normalizedUsed.includes(n));
+  if (available.length === 0) return null;
+  const randomIndex = Math.floor(Math.random() * available.length);
+  return available[randomIndex];
+}
 
-      numberDisplay.textContent = number;
-      if (statusMessage) statusMessage.textContent = "あなたの番号が発行されました！";
+(async () => {
+  const usedNumbers = await fetchUsedNumbers();
+  const candidates = generateCandidateNumbers();
+  const number = getRandomAvailableNumber(candidates, usedNumbers);
 
-      window.copyNumber = function () {
-        navigator.clipboard.writeText(number)
-          .then(() => alert("番号をコピーしました: " + number));
-      };
+  const numberDisplay = document.getElementById('number');
+  const statusMessage = document.getElementById('status-message');
+  const copyButton = document.querySelector('.copy-button');
+  const testButton = document.querySelector('.test-button');
 
-      window.goToTest = function () {
-        window.open("https://forms.gle/tqunfGCxAHUfWJHG9", "_blank");
-      };
-    })();</script>
+  if (!number) {
+    numberDisplay.textContent = "番号が取得できませんでした";
+    if (statusMessage) statusMessage.textContent = "番号の発行に失敗しました";
+    return;
+  }
+
+  numberDisplay.textContent = number;
+  if (statusMessage) statusMessage.textContent = "あなたの番号が発行されました！";
+
+  // 番号取得後に青ボタンを明るく
+  copyButton.classList.add('loaded');
+
+  window.copyNumber = function () {
+    navigator.clipboard.writeText(number)
+      .then(() => {
+        alert("番号をコピーしました: " + number);
+        // コピー後に紫ボタンを濃く
+        testButton.classList.add('clicked');
+      });
+  };
+
+  window.goToTest = function () {
+    window.open("https://forms.gle/tqunfGCxAHUfWJHG9", "_blank");
+  };
+})();
+</script>
+</body>
+</html>
