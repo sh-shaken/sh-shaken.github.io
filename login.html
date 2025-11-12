@@ -188,9 +188,15 @@
       try {
         const url = await generatePDF(result);
         status.innerHTML = `
-          結果の生成が完了しました！心理テストにご協力いただき、ありがとうございました！<br><br>
-          <small>※LINEからアクセスしている場合、PDFが自動で開かない場合があります。</small><br>
-          <a href="https://sh-shaken.github.io/errorpdf.html" target="_blank">▶ PDFが表示されない場合はこちら</a>
+  結果の生成が完了しました！心理テストにご協力いただき、ありがとうございました！<br><br>
+  <small style="font-size: 0.85em; color: #555;">
+    ※標準ブラウザ以外からアクセスしている場合、PDFが自動で開かないことがあります。<br>
+    <a href="https://sh-shaken.github.io/errorpdf.html" target="_blank" style="font-size: 0.8em; color: #007bff; text-decoration: underline;">
+      PDFが表示されない場合はこちらをタップ
+    </a>
+  </small>
+`;
+
         `;
       } catch (err) {
         console.error("PDF生成エラー:", err);
