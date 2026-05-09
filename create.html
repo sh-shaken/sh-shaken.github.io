@@ -183,11 +183,11 @@ function setupCopyButton(number, copyButton, testButton, text = "番号をコピ
   if (!limitResult.canIssue) {
     if (savedNumber) {
       numberDisplay.textContent = savedNumber;
-      statusMessage.textContent = "更新しすぎています。しばらくお待ちください。";
+      statusMessage.textContent = "更新しすぎています。新しい番号を発行することができません。。";
       setupCopyButton(savedNumber, copyButton, testButton, "最後の番号をコピーする");
     } else {
       numberDisplay.textContent = "番号がありません";
-      statusMessage.textContent = "更新しすぎています。しばらくお待ちください。";
+      statusMessage.textContent = "更新しすぎています。新しい番号を発行することができません。";
       copyButton.textContent = "番号をコピーできません";
       copyButton.disabled = true;
     }
