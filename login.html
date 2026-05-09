@@ -156,7 +156,7 @@
 
   const script = document.createElement('script');
   script.id = 'jsonpScript';
-  script.src = `${GAS_URL}?id=${encodeURIComponent(number)}&pw=${encodeURIComponent(password)}&callback=handleJSONPResponse`;
+  script.src = `${GAS_URL}?action=pdfmaker&id=${encodeURIComponent(number)}&pw=${encodeURIComponent(password)}&callback=handleJSONPResponse`;
 
   script.onerror = () => {
     status.textContent = "サーバーに接続できませんでした。時間をおいて再試行してください。";
