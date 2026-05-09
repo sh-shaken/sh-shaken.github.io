@@ -128,41 +128,44 @@
     const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
     const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Bold.ttf';
 
-    function handleLogin(event) {
-      event.preventDefault();
-      const status = document.getElementById('status');
-      const contact = document.getElementById('contact-link');
-      const pdfLink = document.getElementById('pdf-link');
+   function handleLogin(event) {
+  event.preventDefault();
 
-      if (!navigator.onLine) {
-        status.textContent = "ネットワークに接続されていません。Wi-Fiや通信状況を確認してください。";
-        contact.style.display = 'block';
-        pdfLink.style.display = 'block';
-        return;
-      }
+  const status = document.getElementById('status');
+  status.textContent = "送信ボタンが押されました。データベースに問い合わせています...";
 
-      const number = document.getElementById('number').value.trim().replace(/^0+/, '');
-      const password = document.getElementById('password').value.trim();
+  const contact = document.getElementById('contact-link');
+  const pdfLink = document.getElementById('pdf-link');
 
-      status.textContent = "番号とパスワードを照合しています...";
-      contact.style.display = 'none';
-      pdfLink.style.display = 'none';
+  if (!navigator.onLine) {
+    status.textContent = "ネットワークに接続されていません。Wi-Fiや通信状況を確認してください。";
+    contact.style.display = 'block';
+    pdfLink.style.display = 'block';
+    return;
+  }
 
-      const existing = document.getElementById('jsonpScript');
-      if (existing) existing.remove();
+  const number = document.getElementById('number').value.trim().replace(/^0+/, '');
+  const password = document.getElementById('password').value.trim();
 
-      const script = document.createElement('script');
-      script.id = 'jsonpScript';
-      script.src = `${GAS_URL}?id=${encodeURIComponent(number)}&pw=${encodeURIComponent(password)}&callback=handleJSONPResponse`;
+  status.textContent = "番号とパスワードを照合しています...";
+  contact.style.display = 'none';
+  pdfLink.style.display = 'none';
 
-      script.onerror = () => {
-        status.textContent = "サーバーに接続できませんでした。時間をおいて再試行してください。";
-        contact.style.display = 'block';
-        pdfLink.style.display = 'block';
-      };
+  const existing = document.getElementById('jsonpScript');
+  if (existing) existing.remove();
 
-      document.body.appendChild(script);
-    }
+  const script = document.createElement('script');
+  script.id = 'jsonpScript';
+  script.src = `${GAS_URL}?id=${encodeURIComponent(number)}&pw=${encodeURIComponent(password)}&callback=handleJSONPResponse`;
+
+  script.onerror = () => {
+    status.textContent = "サーバーに接続できませんでした。時間をおいて再試行してください。";
+    contact.style.display = 'block';
+    pdfLink.style.display = 'block';
+  };
+
+  document.body.appendChild(script);
+}
 
     async function handleJSONPResponse(result) {
       const status = document.getElementById('status');
