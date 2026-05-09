@@ -119,28 +119,33 @@ function recordIssue(log) {
   saveIssueLog(log);
 }
 
-async function issueNumber() {
-  const issueURL = 'https://script.google.com/macros/s/AKfycbzoD_5iyWmlfHn1CyXvf9O-_3vwBAZ34nze86Z6cV5pPTxjZ9Tugin6zttn2CHkdhCFEQ/exec?action=issueNumber'; // 変更可能
+function issueNumber() {
+  const gasUrl = "https://script.google.com/macros/s/AKfycbzoD_5iyWmlfHn1CyXvf9O-_3vwBAZ34nze86Z6cV5pPTxjZ9Tugin6zttn2CHkdhCFEQ/exec";
 
-  try {
-    const response = await fetch(issueURL);
+  return new Promise((resolve, reject) => {
+    const callbackName = "gasCallback_" + Date.now();
 
-    if (!response.ok) {
-      throw new Error("ネットワークエラー");
-    }
+    window[callbackName] = function(data) {
+      delete window[callbackName];
+      script.remove();
 
-    const data = await response.json();
+      if (data && data.success) {
+        resolve(data.number);
+      } else {
+        reject(new Error(data.message || "番号の発行に失敗しました。"));
+      }
+    };
 
-    if (!data.success) {
-      throw new Error(data.message || "番号の発行に失敗しました。");
-    }
+    const script = document.createElement("script");
+    script.src = gasUrl + "?callback=" + callbackName;
+    script.onerror = function() {
+      delete window[callbackName];
+      script.remove();
+      reject(new Error("GASとの通信に失敗しました。"));
+    };
 
-    return data.number;
-
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
+    document.body.appendChild(script);
+  });
 }
 
 function setupCopyButton(number, copyButton, testButton, text = "番号をコピーする") {
