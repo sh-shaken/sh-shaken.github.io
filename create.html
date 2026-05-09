@@ -77,31 +77,88 @@ button {
 </div>
 
 <script>
-async function fetchUsedNumbers() {
-  const usedURL = 'https://script.google.com/macros/s/AKfycbylN94TA9Mxxo4xIXnXMnbNmh3RjgytHQMGb1QsASQyBHpem5wJ-mLMT8PDmcAWaQXc/exec';
+const LIMIT_MINUTES = 10;
+const MAX_ISSUE_COUNT = 5;
+
+const STORAGE_KEY_NUMBER = "issuedNumber";
+const STORAGE_KEY_ISSUE_LOG = "numberIssueLog";
+
+function getIssueLog() {
+  const raw = localStorage.getItem(STORAGE_KEY_ISSUE_LOG);
+  if (!raw) return [];
+
   try {
-    const response = await fetch(usedURL);
-    if (!response.ok) throw new Error("ネットワークエラー");
-    return await response.json();
+    return JSON.parse(raw);
   } catch (e) {
-    console.warn("使用済み番号の取得に失敗しました。ローカルで番号を生成します。");
     return [];
   }
 }
 
-function generateCandidateNumbers() {
-  const numbers = [];
-  for (let i = 1000; i <= 1500; i++) numbers.push(String(i));
-  for (let i = 2001; i <= 9999; i++) numbers.push(String(i));
-  return numbers;
+function saveIssueLog(log) {
+  localStorage.setItem(STORAGE_KEY_ISSUE_LOG, JSON.stringify(log));
 }
 
-function getRandomAvailableNumber(candidates, used) {
-  const normalizedUsed = used.map(n => String(n).trim().replace(/^0+/, ""));
-  const available = candidates.filter(n => !normalizedUsed.includes(n));
-  if (available.length === 0) return null;
-  const randomIndex = Math.floor(Math.random() * available.length);
-  return available[randomIndex];
+function checkIssueLimit() {
+  const now = Date.now();
+  const limitTime = LIMIT_MINUTES * 60 * 1000;
+
+  let log = getIssueLog();
+
+  // 10分以内の発行履歴だけ残す
+  log = log.filter(time => now - time <= limitTime);
+
+  return {
+    log,
+    count: log.length,
+    canIssue: log.length < MAX_ISSUE_COUNT
+  };
+}
+
+function recordIssue(log) {
+  log.push(Date.now());
+  saveIssueLog(log);
+}
+
+async function issueNumber() {
+  const issueURL = 'https://script.google.com/macros/s/AKfycbyCNiSv5jGJGU2wj-snq8K8W6K761usW0Ow0aBM6bWzEgOXoaD25Rgy7Xr4iu5QU_jyQw/exec?key=7ZsXd1EjLffQueE0Xm67H-SNktVkTUSS2bgtY5JksoQjekCJCwjayVmYKHS9R5QZ52ORBW4eWsm2WuJ7x2eQVQRs3mnFxz6EjeA8NJtmKSU7_TnMNfiydLA'; // 変更可能, キー付き
+
+  try {
+    const response = await fetch(issueURL);
+
+    if (!response.ok) {
+      throw new Error("ネットワークエラー");
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message || "番号の発行に失敗しました。");
+    }
+
+    return data.number;
+
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
+function setupCopyButton(number, copyButton, testButton, text = "番号をコピーする") {
+  copyButton.disabled = false;
+  copyButton.classList.add('loaded');
+  copyButton.textContent = text;
+
+  copyButton.onclick = function() {
+    navigator.clipboard.writeText(number)
+      .then(() => {
+        alert("番号をコピーしました: " + number);
+        testButton.classList.add('clicked'); // 紫ボタンを濃く
+        copyButton.classList.remove('loaded'); // 色を薄青に戻す
+      })
+      .catch(() => {
+        alert("コピーに失敗しました。番号をスクリーンショットしてください。");
+      });
+  };
 }
 
 (async () => {
@@ -110,37 +167,55 @@ function getRandomAvailableNumber(candidates, used) {
   const copyButton = document.getElementById('copyButton');
   const testButton = document.getElementById('testButton');
 
-  const usedNumbers = await fetchUsedNumbers();
-  const candidates = generateCandidateNumbers();
-  const number = getRandomAvailableNumber(candidates, usedNumbers);
+  testButton.onclick = function() {
+    window.open("https://forms.gle/NFEDqTieeTp4V2qK7", "_blank"); // 変更可能
+  };
 
-  if (!number) {
-    numberDisplay.textContent = "番号が取得できませんでした";
-    statusMessage.textContent = "番号の発行に失敗しました";
+  const limitResult = checkIssueLimit();
+  const savedNumber = localStorage.getItem(STORAGE_KEY_NUMBER);
+
+  // 10分以内に5回以上発行済みの場合
+  if (!limitResult.canIssue) {
+    if (savedNumber) {
+      numberDisplay.textContent = savedNumber;
+      statusMessage.textContent = "更新しすぎています。しばらくお待ちください。";
+      setupCopyButton(savedNumber, copyButton, testButton, "最後の番号をコピーする");
+    } else {
+      numberDisplay.textContent = "番号がありません";
+      statusMessage.textContent = "更新しすぎています。しばらくお待ちください。";
+      copyButton.textContent = "番号をコピーできません";
+      copyButton.disabled = true;
+    }
+
     return;
   }
+
+  // 発行可能な場合は新しい番号を発行
+  const number = await issueNumber();
+
+  if (!number) {
+    if (savedNumber) {
+      numberDisplay.textContent = savedNumber;
+      statusMessage.textContent = "新しい番号の発行に失敗しました。前回の番号を表示しています";
+      setupCopyButton(savedNumber, copyButton, testButton, "前回の番号をコピーする");
+    } else {
+      numberDisplay.textContent = "番号が取得できませんでした";
+      statusMessage.textContent = "番号の発行に失敗しました";
+      copyButton.textContent = "番号をコピーできません";
+      copyButton.disabled = true;
+    }
+
+    return;
+  }
+
+  // 発行成功したら、番号と発行履歴を保存
+  localStorage.setItem(STORAGE_KEY_NUMBER, number);
+  recordIssue(limitResult.log);
 
   numberDisplay.textContent = number;
   statusMessage.textContent = "あなたの番号が発行されました！";
 
-  // 番号取得後に青ボタンを明るく＆文字を変更
-  copyButton.classList.add('loaded');
-  copyButton.textContent = "番号をコピーする";
-
-  copyButton.onclick = function() {
-    navigator.clipboard.writeText(number)
-      .then(() => {
-        alert("番号をコピーしました: " + number);
-        // 紫ボタンを濃く
-        testButton.classList.add('clicked');
-        // 青ボタンの文字はそのまま、色を薄青に戻す
-        copyButton.classList.remove('loaded');
-      });
-  };
-
-  testButton.onclick = function() {
-    window.open("https://forms.gle/hVpxL26wg89rjrRU8", "_blank");
-  };
+  setupCopyButton(number, copyButton, testButton);
 })();
 </script>
 </body>
