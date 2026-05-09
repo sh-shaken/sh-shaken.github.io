@@ -137,7 +137,7 @@ function issueNumber() {
     };
 
     const script = document.createElement("script");
-    script.src = gasUrl + "?callback=" + callbackName;
+    script.src = gasUrl + "?action=issueNumber&callback=" + callbackName;
     script.onerror = function() {
       delete window[callbackName];
       script.remove();
