@@ -205,13 +205,12 @@ const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Bold.ttf';
   </small>
 `;
 
-      } catch (err) {
-        console.error("PDF生成エラー:", err);
-        status.textContent = "結果データは取得できましたが、PDF生成中にエラーが発生しました。";
-        contact.style.display = 'block';
-        pdfLink.style.display = 'block';
-      }
-    }
+} catch (err) {
+  console.error("PDF生成エラー:", err);
+  status.textContent = "PDF生成エラー: " + err.message;
+  contact.style.display = 'block';
+  pdfLink.style.display = 'block';
+}
 
  async function generatePDF(userData) {
   const pdfType = String(userData['受取'] || '').trim();
