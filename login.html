@@ -74,14 +74,20 @@
     #status a:hover {
       color: #0056b3;
     }
-    pre {
-      text-align: left;
-      background: #f7f7f7;
-      padding: 1em;
-      border-radius: 6px;
-      font-size: .85em;
-      margin-top: 1em;
-    }
+pre {
+  text-align: left;
+  background: #f7f7f7;
+  padding: 1em;
+  border-radius: 6px;
+  font-size: .85em;
+  margin-top: 1em;
+  white-space: pre-wrap;      /* 改行を保持しつつ折り返す */
+  word-break: break-word;     /* 長い日本語・英数字も折り返す */
+  overflow-wrap: anywhere;    /* はみ出し防止 */
+  line-height: 1.6;
+  max-height: 260px;
+  overflow-y: auto;
+}
     noscript {
       position: fixed;
       top: 0;
@@ -189,9 +195,13 @@ const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Bold.ttf';
         .map(([key, val]) => `${key}: ${val}`)
         .join("\n");
 
-      const pre = document.createElement('pre');
-      pre.textContent = "【取得データログ】\n" + logLines;
-      document.querySelector('.container').appendChild(pre);
+      const oldPre = document.getElementById('result-log');
+if (oldPre) oldPre.remove();
+
+const pre = document.createElement('pre');
+pre.id = 'result-log';
+pre.textContent = "【取得データログ】\n" + logLines;
+document.querySelector('.container').appendChild(pre);
 
       try {
         const url = await generatePDF(result);
@@ -223,58 +233,56 @@ const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Bold.ttf';
   }
 
 function writeOnePdf(pages, customFont, userData) {
-  // one.pdf は6ページ構成
-  // pages[0] = 1ページ目
-  // pages[2] = 3ページ目：左脳・右脳診断
-  // pages[3] = 4ページ目：エゴグラム診断
-
   const red = PDFLib.rgb(1, 0, 0);
 
-  // 1ページ目：番号
+  // -----------------------------
+  // 1ページ目：番号（サイズ調整可）
+  // -----------------------------
   const positionsPage1 = {
-    ID: { x: 330, y: 225 }
+    ID: { x: 276, y: 577.8, size: 40 } // ← ここで数字の大きさを変更
   };
 
-  // 3ページ目：左脳・右脳・学生
+  // -----------------------------
+  // 3ページ目：左脳・右脳・No.
+  // 学生は文字を書かず、後で楕円を描く
+  // -----------------------------
   const positionsPage3 = {
-    ID:   { x: 505, y: 760, size: 10 },
-    左脳: { x: 210, y: 645, size: 40 },
-    右脳: { x: 355, y: 645, size: 40 },
-    学生: { x: 80,  y: 300, size: 14 }
+    ID:   { x: 492, y: 772, size: 12 },
+    左脳: { x: 200, y: 648, size: 40 },
+    右脳: { x: 350, y: 648, size: 40 },
   };
 
+  // -----------------------------
   // 4ページ目：エゴグラム結果
+  // -----------------------------
   const positionsPage4 = {
-    CP: { x: 95, y: 548, size: 16 },
-    NP: { x: 95, y: 500, size: 16 },
-    A:  { x: 95, y: 453, size: 16 },
-    FC: { x: 95, y: 406, size: 16 },
-    AC: { x: 95, y: 360, size: 16 }
+    CP: { x: 90.5, y: 521, size: 18 },
+    NP: { x: 90.5, y: 476, size: 18 },
+    A:  { x: 90.5, y: 434, size: 18 },
+    FC: { x: 90.5, y: 393, size: 18 },
+    AC: { x: 90.5, y: 351, size: 18 }
   };
 
   // 1ページ目に番号を書く
   if (pages[0]) {
     const page1 = pages[0];
-
     drawPdfText(page1, String(userData.ID || ""), {
       x: positionsPage1.ID.x,
       y: positionsPage1.ID.y,
-      size: 16,
+      size: positionsPage1.ID.size,
       font: customFont,
       color: red
     });
   }
 
-  // 3ページ目に左脳・右脳・学生を書く
+  // 3ページ目に左脳・右脳・番号を書く
   if (pages[2]) {
     const page3 = pages[2];
 
     for (const key in positionsPage3) {
       const val = userData[key];
-
       if (val !== undefined && val !== null && val !== "") {
         const pos = positionsPage3[key];
-
         drawPdfText(page3, String(val), {
           x: pos.x,
           y: pos.y,
@@ -284,6 +292,9 @@ function writeOnePdf(pages, customFont, userData) {
         });
       }
     }
+
+    // 学生欄を横長の楕円で囲む
+    drawStudentOval(page3, String(userData.学生 || "").trim(), red);
   }
 
   // 4ページ目にCP/NP/A/FC/ACを書く
@@ -292,10 +303,8 @@ function writeOnePdf(pages, customFont, userData) {
 
     for (const key in positionsPage4) {
       const val = userData[key];
-
       if (val !== undefined && val !== null && val !== "") {
         const pos = positionsPage4[key];
-
         drawPdfText(page4, String(val), {
           x: pos.x,
           y: pos.y,
@@ -306,6 +315,30 @@ function writeOnePdf(pages, customFont, userData) {
       }
     }
   }
+}    
+
+function drawStudentOval(page, student, color) {
+  // one.pdf 3ページ目の表に合わせた初期値
+  // 必要に応じて x, y, xScale, yScale を微調整してください
+  const studentOvalMap = {
+    "小学生": { x: 84, y: 245, xScale: 26, yScale: 13 },
+    "中学生": { x: 84, y: 205, xScale: 26, yScale: 13 },
+    "高校生": { x: 84, y: 164, xScale: 26, yScale: 13 },
+    "大学生": { x: 84, y: 124, xScale: 26, yScale: 13 },
+    "教授":   { x: 84, y:  84, xScale: 26, yScale: 13 }
+  };
+
+  const pos = studentOvalMap[student];
+  if (!pos) return;
+
+  page.drawEllipse({
+    x: pos.x,
+    y: pos.y,
+    xScale: pos.xScale,
+    yScale: pos.yScale,
+    borderColor: color,
+    borderWidth: 2
+  });
 }
 
 function drawPdfText(page, text, options) {
