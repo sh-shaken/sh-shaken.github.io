@@ -125,8 +125,13 @@
 
   <script>
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbzoD_5iyWmlfHn1CyXvf9O-_3vwBAZ34nze86Z6cV5pPTxjZ9Tugin6zttn2CHkdhCFEQ/exec';
-    const PDF_TEMPLATE_URL = 'https://sh-shaken.github.io/結果用紙本物原本web用.pdf';
-    const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Bold.ttf';
+const PDF_TEMPLATE_URLS = {
+  one: 'https://sh-shaken.github.io/one.pdf',
+  two: 'https://sh-shaken.github.io/two.pdf',
+  home: 'https://sh-shaken.github.io/home.pdf'
+};
+
+const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Bold.ttf';
 
    function handleLogin(event) {
   event.preventDefault();
@@ -208,76 +213,153 @@
       }
     }
 
-    async function generatePDF(userData) {
-      const [pdfBytes, fontBytes] = await Promise.all([
-        fetch(PDF_TEMPLATE_URL).then(res => res.arrayBuffer()),
-        fetch(FONT_URL).then(res => res.arrayBuffer())
-      ]);
+ async function generatePDF(userData) {
+  const pdfType = String(userData['受取'] || '').trim();
 
-      const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
-      pdfDoc.registerFontkit(window.fontkit);
-      const customFont = await pdfDoc.embedFont(fontBytes);
-      const pages = pdfDoc.getPages();
+  const templateUrl = PDF_TEMPLATE_URLS[pdfType];
 
-      const positionsPage1 = {
-        ID:    { x: 503, y: 772 },
-        左脳:  { x: 200, y: 648 },
-        右脳:  { x: 350, y: 648 },
-        学生:  { x: 62.5,  y: 310 },
-      };
+  if (!templateUrl) {
+    throw new Error("対応するPDFテンプレートが見つかりません: " + pdfType);
+  }
 
-      const positionsPage2 = {
-        CP:  { x: 90, y: 505 },
-        NP:  { x: 90, y: 460 },
-        A:   { x: 90, y: 418 },
-        FC:  { x: 90, y: 377 },
-        AC:  { x: 90, y: 335 },
-      };
+function writeOnePdf(pages, customFont, userData) {
+  // one.pdf は6ページ構成
+  // pages[0] = 1ページ目
+  // pages[2] = 3ページ目：左脳・右脳診断
+  // pages[3] = 4ページ目：エゴグラム診断
 
-      const page1 = pages[0];
-      for (const key in positionsPage1) {
-        const val = userData[key];
-        if (val !== undefined) {
-          page1.drawText(String(val), {
-            x: positionsPage1[key].x,
-            y: positionsPage1[key].y,
-            size: (key === 'ID' || key === '学生') ? 14 : 40,
-            font: customFont,
-            color: PDFLib.rgb(1, 0, 0),
-          });
-        }
+  const red = PDFLib.rgb(1, 0, 0);
+
+  // 1ページ目：番号
+  const positionsPage1 = {
+    ID: { x: 330, y: 225 }
+  };
+
+  // 3ページ目：左脳・右脳・学生
+  const positionsPage3 = {
+    ID:   { x: 505, y: 760, size: 10 },
+    左脳: { x: 210, y: 645, size: 40 },
+    右脳: { x: 355, y: 645, size: 40 },
+    学生: { x: 80,  y: 300, size: 14 }
+  };
+
+  // 4ページ目：エゴグラム結果
+  const positionsPage4 = {
+    CP: { x: 95, y: 548, size: 16 },
+    NP: { x: 95, y: 500, size: 16 },
+    A:  { x: 95, y: 453, size: 16 },
+    FC: { x: 95, y: 406, size: 16 },
+    AC: { x: 95, y: 360, size: 16 }
+  };
+
+  // 1ページ目に番号を書く
+  if (pages[0]) {
+    const page1 = pages[0];
+
+    drawPdfText(page1, String(userData.ID || ""), {
+      x: positionsPage1.ID.x,
+      y: positionsPage1.ID.y,
+      size: 16,
+      font: customFont,
+      color: red
+    });
+  }
+
+  // 3ページ目に左脳・右脳・学生を書く
+  if (pages[2]) {
+    const page3 = pages[2];
+
+    for (const key in positionsPage3) {
+      const val = userData[key];
+
+      if (val !== undefined && val !== null && val !== "") {
+        const pos = positionsPage3[key];
+
+        drawPdfText(page3, String(val), {
+          x: pos.x,
+          y: pos.y,
+          size: pos.size,
+          font: customFont,
+          color: red
+        });
       }
-
-      if (pages.length >= 2) {
-        const page2 = pages[1];
-        for (const key in positionsPage2) {
-          const val = userData[key];
-          if (val !== undefined) {
-            page2.drawText(String(val), {
-              x: positionsPage2[key].x,
-              y: positionsPage2[key].y,
-              size: 20,
-              font: customFont,
-              color: PDFLib.rgb(1, 0, 0),
-            });
-          }
-        }
-      }
-
-      const pdfBytesOut = await pdfDoc.save();
-      const blob = new Blob([pdfBytesOut], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-
-      // 自動ダウンロード（LINEでは動作しない可能性あり）
-      try {
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${userData['ID'] || 'output'}.pdf`;
-        a.click();
-      } catch {}
-
-      return url;
     }
+  }
+
+  // 4ページ目にCP/NP/A/FC/ACを書く
+  if (pages[3]) {
+    const page4 = pages[3];
+
+    for (const key in positionsPage4) {
+      const val = userData[key];
+
+      if (val !== undefined && val !== null && val !== "") {
+        const pos = positionsPage4[key];
+
+        drawPdfText(page4, String(val), {
+          x: pos.x,
+          y: pos.y,
+          size: pos.size,
+          font: customFont,
+          color: red
+        });
+      }
+    }
+  }
+}
+
+function drawPdfText(page, text, options) {
+  page.drawText(text, {
+    x: options.x,
+    y: options.y,
+    size: options.size,
+    font: options.font,
+    color: options.color
+  });
+}
+
+  const [pdfBytes, fontBytes] = await Promise.all([
+    fetch(templateUrl).then(res => {
+      if (!res.ok) throw new Error("PDFテンプレートを取得できませんでした。");
+      return res.arrayBuffer();
+    }),
+    fetch(FONT_URL).then(res => {
+      if (!res.ok) throw new Error("フォントを取得できませんでした。");
+      return res.arrayBuffer();
+    })
+  ]);
+
+  const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+  pdfDoc.registerFontkit(window.fontkit);
+
+  const customFont = await pdfDoc.embedFont(fontBytes);
+  const pages = pdfDoc.getPages();
+
+  if (pdfType === "one") {
+    writeOnePdf(pages, customFont, userData);
+  } else if (pdfType === "two") {
+    // 後でtwo.pdf用の座標を入れる
+    writeOnePdf(pages, customFont, userData);
+  } else if (pdfType === "home") {
+    // 後でhome.pdf用の座標を入れる
+    writeOnePdf(pages, customFont, userData);
+  }
+
+  const pdfBytesOut = await pdfDoc.save();
+  const blob = new Blob([pdfBytesOut], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${userData['ID'] || 'output'}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch {}
+
+  return url;
+}
   </script>
 </body>
 </html>
