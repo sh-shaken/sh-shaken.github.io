@@ -41,6 +41,35 @@ button {
   transition: background-color .3s ease;
   width: 100%;
 }
+.number-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6em;
+  margin: .5em 0 1.2em 0;
+}
+
+.number-row .code {
+  margin: 0;
+}
+
+.reissue-button {
+  width: auto;
+  margin-top: 0;
+  padding: .45em .7em;
+  font-size: .75em;
+  background-color: #6c757d;
+  white-space: nowrap;
+}
+
+.reissue-button:hover {
+  background-color: #5a6268;
+}
+
+.reissue-button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
 
 /* コピーボタン（青） */
 .copy-button {
@@ -69,7 +98,10 @@ button {
 <div class="container">
   <h1 id="status-message">あなたの番号を発行しています...</h1>
   <div class="label">番号:</div>
+<div class="number-row">
   <div class="code" id="number">読み込み中...</div>
+  <button class="reissue-button" id="reissueButton" type="button">再発行</button>
+</div>
   <button class="copy-button" id="copyButton">少し待てば、番号をコピーできます...</button>
   <p class="note">※受付より番号札が既に配られている場合、この番号は必要ありません。</p>
   <p class="note">※この番号はコピー、または画面をスクリーンショットしてください。コピーまたはスクリーンショットしたら次に進んでください。↓</p>
@@ -171,56 +203,91 @@ function setupCopyButton(number, copyButton, testButton, text = "番号をコピ
   const statusMessage = document.getElementById('status-message');
   const copyButton = document.getElementById('copyButton');
   const testButton = document.getElementById('testButton');
+  const reissueButton = document.getElementById('reissueButton');
 
   testButton.onclick = function() {
-    window.open("https://forms.gle/NFEDqTieeTp4V2qK7", "_blank"); // 変更可能
+    window.open("https://forms.gle/NFEDqTieeTp4V2qK7", "_blank");
   };
 
-  const limitResult = checkIssueLimit();
+  async function requestNewNumber(isReissue = false) {
+    const limitResult = checkIssueLimit();
+    const savedNumber = localStorage.getItem(STORAGE_KEY_NUMBER);
+
+    if (!limitResult.canIssue) {
+      if (savedNumber) {
+        numberDisplay.textContent = savedNumber;
+        statusMessage.textContent = "更新しすぎています。新しい番号を発行することができません。最後に発行した番号を表示しています。";
+        setupCopyButton(savedNumber, copyButton, testButton, "最後の番号をコピーする");
+      } else {
+        numberDisplay.textContent = "番号がありません";
+        statusMessage.textContent = "更新しすぎています。新しい番号を発行することができません。";
+        copyButton.textContent = "番号をコピーできません";
+        copyButton.disabled = true;
+      }
+
+      return;
+    }
+
+    try {
+      reissueButton.disabled = true;
+      copyButton.disabled = true;
+
+      statusMessage.textContent = isReissue
+        ? "新しい番号を再発行しています..."
+        : "あなたの番号を発行しています...";
+
+      numberDisplay.textContent = "読み込み中...";
+
+      const number = await issueNumber();
+
+      localStorage.setItem(STORAGE_KEY_NUMBER, number);
+      recordIssue(limitResult.log);
+
+      numberDisplay.textContent = number;
+      statusMessage.textContent = isReissue
+        ? "新しい番号が再発行されました！"
+        : "あなたの番号が発行されました！";
+
+      setupCopyButton(number, copyButton, testButton);
+
+    } catch (e) {
+      console.error(e);
+
+      const savedNumber = localStorage.getItem(STORAGE_KEY_NUMBER);
+
+      if (savedNumber) {
+        numberDisplay.textContent = savedNumber;
+        statusMessage.textContent = "新しい番号の発行に失敗しました。前回の番号を表示しています。";
+        setupCopyButton(savedNumber, copyButton, testButton, "前回の番号をコピーする");
+      } else {
+        numberDisplay.textContent = "番号が取得できませんでした";
+        statusMessage.textContent = "番号の発行に失敗しました";
+        copyButton.textContent = "番号をコピーできません";
+        copyButton.disabled = true;
+      }
+
+    } finally {
+      reissueButton.disabled = false;
+    }
+  }
+
+  reissueButton.onclick = function() {
+    const ok = confirm("新しい番号を再発行しますか？\n現在表示されている番号とは別の番号が発行されます。");
+
+    if (ok) {
+      requestNewNumber(true);
+    }
+  };
+
   const savedNumber = localStorage.getItem(STORAGE_KEY_NUMBER);
 
-  // 10分以内に5回以上発行済みの場合
-  if (!limitResult.canIssue) {
-    if (savedNumber) {
-      numberDisplay.textContent = savedNumber;
-      statusMessage.textContent = "更新しすぎています。新しい番号を発行することができません。。";
-      setupCopyButton(savedNumber, copyButton, testButton, "最後の番号をコピーする");
-    } else {
-      numberDisplay.textContent = "番号がありません";
-      statusMessage.textContent = "更新しすぎています。新しい番号を発行することができません。";
-      copyButton.textContent = "番号をコピーできません";
-      copyButton.disabled = true;
-    }
-
-    return;
+  if (savedNumber) {
+    numberDisplay.textContent = savedNumber;
+    statusMessage.textContent = "前回発行した番号を表示しています。新しい番号が必要な場合は「再発行」を押してください。";
+    setupCopyButton(savedNumber, copyButton, testButton);
+  } else {
+    await requestNewNumber(false);
   }
-
-  // 発行可能な場合は新しい番号を発行
-  const number = await issueNumber();
-
-  if (!number) {
-    if (savedNumber) {
-      numberDisplay.textContent = savedNumber;
-      statusMessage.textContent = "新しい番号の発行に失敗しました。前回の番号を表示しています";
-      setupCopyButton(savedNumber, copyButton, testButton, "前回の番号をコピーする");
-    } else {
-      numberDisplay.textContent = "番号が取得できませんでした";
-      statusMessage.textContent = "番号の発行に失敗しました";
-      copyButton.textContent = "番号をコピーできません";
-      copyButton.disabled = true;
-    }
-
-    return;
-  }
-
-  // 発行成功したら、番号と発行履歴を保存
-  localStorage.setItem(STORAGE_KEY_NUMBER, number);
-  recordIssue(limitResult.log);
-
-  numberDisplay.textContent = number;
-  statusMessage.textContent = "あなたの番号が発行されました！";
-
-  setupCopyButton(number, copyButton, testButton);
 })();
 </script>
 </body>
