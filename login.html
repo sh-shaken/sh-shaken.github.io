@@ -8,6 +8,9 @@
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
   <script src="https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.js"></script>
   <style>
+* {
+  box-sizing: border-box;
+}
     body {
       font-family: 'Noto Sans JP', sans-serif;
       background-color: #f0f2f5;
@@ -129,8 +132,9 @@ pre {
 </p>
   </div>
 
-  <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzoD_5iyWmlfHn1CyXvf9O-_3vwBAZ34nze86Z6cV5pPTxjZ9Tugin6zttn2CHkdhCFEQ/exec';
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzoD_5iyWmlfHn1CyXvf9O-_3vwBAZ34nze86Z6cV5pPTxjZ9Tugin6zttn2CHkdhCFEQ/exec';
+
 const PDF_TEMPLATE_URLS = {
   one: 'https://sh-shaken.github.io/one.pdf',
   two: 'https://sh-shaken.github.io/two.pdf',
@@ -139,81 +143,116 @@ const PDF_TEMPLATE_URLS = {
 
 const FONT_URL = 'https://sh-shaken.github.io/fonts/NotoSansJP-Bold.ttf';
 
-   function handleLogin(event) {
+function getEl(id) {
+  return document.getElementById(id);
+}
+
+function showElement(el) {
+  el.style.display = 'block';
+}
+
+function hideElement(el) {
+  el.style.display = 'none';
+}
+
+function clearJsonpTimeout() {
+  if (window.jsonpTimeoutId) {
+    clearTimeout(window.jsonpTimeoutId);
+    window.jsonpTimeoutId = null;
+  }
+}
+
+function removeJsonpScript() {
+  const existing = getEl('jsonpScript');
+  if (existing) existing.remove();
+}
+
+function getPdfType(userData) {
+  return String(userData['受取'] || '').trim();
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function handleLogin(event) {
   event.preventDefault();
 
-  const status = document.getElementById('status');
-  status.textContent = "送信ボタンが押されました。データベースに問い合わせています...";
-
-  const contact = document.getElementById('contact-link');
-  const pdfLink = document.getElementById('pdf-link');
+  const status = getEl('status');
+  const contact = getEl('contact-link');
+  const pdfLink = getEl('pdf-link');
 
   if (!navigator.onLine) {
     status.textContent = "ネットワークに接続されていません。Wi-Fiや通信状況を確認してください。";
-    contact.style.display = 'block';
-    pdfLink.style.display = 'block';
+    showElement(contact);
+    showElement(pdfLink);
     return;
   }
 
-  const number = document.getElementById('number').value.trim().replace(/^0+/, '');
-  const password = document.getElementById('password').value.trim();
+  const number = getEl('number').value.trim().replace(/^0+/, '');
+  const password = getEl('password').value.trim();
 
   status.textContent = "番号とパスワードを照合しています...";
-  contact.style.display = 'none';
-  pdfLink.style.display = 'none';
+  hideElement(contact);
+  hideElement(pdfLink);
 
-  const existing = document.getElementById('jsonpScript');
-  if (existing) existing.remove();
+  removeJsonpScript();
+  clearJsonpTimeout();
 
   const script = document.createElement('script');
   script.id = 'jsonpScript';
   script.src = `${GAS_URL}?action=pdfmaker&id=${encodeURIComponent(number)}&pw=${encodeURIComponent(password)}&callback=handleJSONPResponse`;
 
+  window.jsonpTimeoutId = setTimeout(() => {
+    removeJsonpScript();
+    status.textContent = "データベースからの応答がありませんでした。通信状況を確認して、もう一度お試しください。";
+    showElement(contact);
+    showElement(pdfLink);
+  }, 30000);
+
   script.onerror = () => {
+    clearJsonpTimeout();
     status.textContent = "サーバーに接続できませんでした。時間をおいて再試行してください。";
-    contact.style.display = 'block';
-    pdfLink.style.display = 'block';
+    showElement(contact);
+    showElement(pdfLink);
   };
 
   document.body.appendChild(script);
 }
 
-    async function handleJSONPResponse(result) {
-      const status = document.getElementById('status');
-      const contact = document.getElementById('contact-link');
-      const pdfLink = document.getElementById('pdf-link');
+async function handleJSONPResponse(result) {
+  clearJsonpTimeout();
+  removeJsonpScript();
+
+  const status = getEl('status');
+  const contact = getEl('contact-link');
+  const pdfLink = getEl('pdf-link');
+
+  status.textContent = "PDFを生成しています...";
 
 if (!result.success) {
-  status.textContent = "番号またはパスワードが一致しません。";
-  contact.style.display = 'block';
-  pdfLink.style.display = 'none';
+  status.textContent = result.message || "番号またはパスワードが一致しません。";
+  showElement(contact);
+  hideElement(pdfLink);
   return;
 }
+  updateTemplateLink(result);
+  showResultLog(result);
 
-// 受取タイプに応じて、PDFテンプレートリンクを変更
-const pdfTypeForLink = String(result['受取'] || '').trim();
-const templateLink = document.getElementById('template-link');
+  try {
+    await generatePDF(result);
 
-if (templateLink && PDF_TEMPLATE_URLS[pdfTypeForLink]) {
-  templateLink.href = PDF_TEMPLATE_URLS[pdfTypeForLink];
-}
+const noticeHtml = result.message
+  ? `<div style="margin-bottom:1em;color:#b35c00;font-weight:bold;">${escapeHtml(result.message)}</div>`
+  : "";
 
-      const logLines = Object.entries(result)
-        .filter(([k]) => k !== "success")
-        .map(([key, val]) => `${key}: ${val}`)
-        .join("\n");
-
-      const oldPre = document.getElementById('result-log');
-if (oldPre) oldPre.remove();
-
-const pre = document.createElement('pre');
-pre.id = 'result-log';
-pre.textContent = "【取得データログ】\n" + logLines;
-document.querySelector('.container').appendChild(pre);
-
-      try {
-        const url = await generatePDF(result);
-        status.innerHTML = `
+status.innerHTML = `
+  ${noticeHtml}
   結果の生成が完了しました！心理テストにご協力いただき、ありがとうございました！<br><br>
   <small style="font-size: 0.85em; color: #555;">
     ※標準ブラウザ以外からアクセスしている場合、PDFが自動でダウンロードされないことがあります。<br>
@@ -223,46 +262,120 @@ document.querySelector('.container').appendChild(pre);
   </small>
 `;
 
-} catch (err) {
-  console.error("PDF生成エラー:", err);
-  status.textContent = "PDF生成エラー: " + err.message;
-  contact.style.display = 'block';
-  pdfLink.style.display = 'block';
+  } catch (err) {
+    console.error("PDF生成エラー:", err);
+    status.textContent = "PDF生成エラー: " + err.message;
+    showElement(contact);
+    showElement(pdfLink);
+  }
 }
-}
-    
- async function generatePDF(userData) {
-  const pdfType = String(userData['受取'] || '').trim();
 
+function updateTemplateLink(result) {
+  const pdfType = getPdfType(result);
+  const templateLink = getEl('template-link');
+
+  if (templateLink && PDF_TEMPLATE_URLS[pdfType]) {
+    templateLink.href = PDF_TEMPLATE_URLS[pdfType];
+  }
+}
+
+function showResultLog(result) {
+  const oldPre = getEl('result-log');
+  if (oldPre) oldPre.remove();
+
+  const pdfType = getPdfType(result);
+  const templateUrl = PDF_TEMPLATE_URLS[pdfType] || '#';
+
+  const logLines = Object.entries(result)
+    .filter(([key]) => key !== "success")
+    .map(([key, val]) => {
+      if (pdfType === "one" && (key === "TYPE" || key === "説明")) {
+        return `${key}: XXXX(2回目の心理テストをやった後に解禁されます)`;
+      }
+
+      return `${key}: ${val}`;
+    })
+    .join("\n");
+
+  const pre = document.createElement('pre');
+  pre.id = 'result-log';
+  pre.innerHTML =
+    escapeHtml("【取得データログ】\n" + logLines + "\n\n") +
+    `<a href="${templateUrl}" target="_blank" style="color:#007bff;text-decoration:underline;">使用テンプレートはこちら</a>`;
+
+  document.querySelector('.container').appendChild(pre);
+}
+
+async function generatePDF(userData) {
+  const pdfType = getPdfType(userData);
   const templateUrl = PDF_TEMPLATE_URLS[pdfType];
 
   if (!templateUrl) {
     throw new Error("対応するPDFテンプレートが見つかりません: " + pdfType);
   }
 
+  const [pdfBytes, fontBytes] = await Promise.all([
+    fetchArrayBuffer(templateUrl, "PDFテンプレートを取得できませんでした。"),
+    fetchArrayBuffer(FONT_URL, "フォントを取得できませんでした。")
+  ]);
+
+  const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+  pdfDoc.registerFontkit(window.fontkit);
+
+  const customFont = await pdfDoc.embedFont(fontBytes);
+  const pages = pdfDoc.getPages();
+
+if (pdfType === "one") {
+  writeOnePdf(pages, customFont, userData);
+} else if (pdfType === "two") {
+  writeTwoPdf(pages, customFont, userData);
+} else if (pdfType === "home") {
+  writeHomePdf(pages, customFont, userData);
+}
+
+  const pdfBytesOut = await pdfDoc.save();
+  const blob = new Blob([pdfBytesOut], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+
+  downloadPDF(url, createPdfFileName(userData));
+
+  return url;
+}
+
+async function fetchArrayBuffer(url, errorMessage) {
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(errorMessage);
+  }
+
+  return response.arrayBuffer();
+}
+
+function downloadPDF(url, fileName) {
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch {}
+}
+
 function writeOnePdf(pages, customFont, userData) {
   const red = PDFLib.rgb(1, 0, 0);
 
-  // -----------------------------
-  // 1ページ目：番号（サイズ調整可）
-  // -----------------------------
   const positionsPage1 = {
-    ID: { x: 276, y: 577.8, size: 40 } // ← ここで数字の大きさを変更
+    ID: { x: 276, y: 577.8, size: 40 }
   };
 
-  // -----------------------------
-  // 3ページ目：左脳・右脳・No.
-  // 学生は文字を書かず、後で楕円を描く
-  // -----------------------------
   const positionsPage3 = {
     ID:   { x: 492, y: 772, size: 12 },
     左脳: { x: 200, y: 648, size: 40 },
-    右脳: { x: 350, y: 648, size: 40 },
+    右脳: { x: 350, y: 648, size: 40 }
   };
 
-  // -----------------------------
-  // 4ページ目：エゴグラム結果
-  // -----------------------------
   const positionsPage4 = {
     CP: { x: 90.5, y: 521, size: 18 },
     NP: { x: 90.5, y: 476, size: 18 },
@@ -271,63 +384,102 @@ function writeOnePdf(pages, customFont, userData) {
     AC: { x: 90.5, y: 351, size: 18 }
   };
 
-  // 1ページ目に番号を書く
   if (pages[0]) {
-    const page1 = pages[0];
-    drawPdfText(page1, String(userData.ID || ""), {
-      x: positionsPage1.ID.x,
-      y: positionsPage1.ID.y,
-      size: positionsPage1.ID.size,
+    drawPdfText(pages[0], String(userData.ID || ""), {
+      ...positionsPage1.ID,
       font: customFont,
       color: red
     });
   }
 
-  // 3ページ目に左脳・右脳・番号を書く
   if (pages[2]) {
     const page3 = pages[2];
 
     for (const key in positionsPage3) {
-      const val = userData[key];
-      if (val !== undefined && val !== null && val !== "") {
-        const pos = positionsPage3[key];
-        drawPdfText(page3, String(val), {
-          x: pos.x,
-          y: pos.y,
-          size: pos.size,
-          font: customFont,
-          color: red
-        });
-      }
+      drawUserDataText(page3, customFont, red, userData, key, positionsPage3[key]);
     }
 
-    // 学生欄を横長の楕円で囲む
     drawStudentOval(page3, String(userData.学生 || "").trim(), red);
   }
 
-  // 4ページ目にCP/NP/A/FC/ACを書く
   if (pages[3]) {
     const page4 = pages[3];
 
     for (const key in positionsPage4) {
-      const val = userData[key];
-      if (val !== undefined && val !== null && val !== "") {
-        const pos = positionsPage4[key];
-        drawPdfText(page4, String(val), {
-          x: pos.x,
-          y: pos.y,
-          size: pos.size,
-          font: customFont,
-          color: red
-        });
-      }
+      drawUserDataText(page4, customFont, red, userData, key, positionsPage4[key]);
     }
   }
-}    
+}
+
+function writeTwoPdf(pages, customFont, userData) {
+  // two.pdf は home.pdf の内容に加えて、
+  // 2ページ目にも第1回受験の番号を書き込む
+  writeHomePdf(pages, customFont, userData);
+
+  const red = PDFLib.rgb(1, 0, 0);
+
+  // 2ページ目：第1回受験認定書
+  // 書き込み位置は現時点では1ページ目と同じ
+  const positionsPage2 = {
+    ID: { x: 276, y: 577.8, size: 40 }
+  };
+
+  if (pages[1]) {
+    drawPdfText(pages[1], String(userData.ID || ""), {
+      ...positionsPage2.ID,
+      font: customFont,
+      color: red
+    });
+  }
+}
+
+function writeHomePdf(pages, customFont, userData) {
+  // home.pdf は one.pdf とほぼ同じ
+  // 1ページ目・3ページ目・4ページ目は one と同じ処理
+  writeOnePdf(pages, customFont, userData);
+
+  const red = PDFLib.rgb(1, 0, 0);
+
+  // 5ページ目：社研タイプ診断
+  // pages[4] = 5ページ目
+  if (!pages[4]) return;
+
+  const page5 = pages[4];
+
+drawCenteredWrappedPdfText(page5, String(userData.TYPE || ""), {
+  centerX: page5.getWidth() / 2,
+  y: 197,
+  size: 35,
+  maxWidth: 470,
+  lineHeight: 30,
+  font: customFont,
+  color: red
+});
+
+  drawWrappedPdfText(page5, String(userData.説明 || ""), {
+    x: 80,
+    y: 122,
+    size: 10,
+    maxWidth: 450,
+    lineHeight: 18,
+    font: customFont,
+    color: red
+  });
+}
+
+function drawUserDataText(page, font, color, userData, key, position) {
+  const val = userData[key];
+
+  if (val === undefined || val === null || val === "") return;
+
+  drawPdfText(page, String(val), {
+    ...position,
+    font,
+    color
+  });
+}
 
 function drawStudentOval(page, student, color) {
-  // one.pdf 3ページ目の表に合わせた初期値
-  // 必要に応じて x, y, xScale, yScale を微調整してください
   const studentOvalMap = {
     "小学生": { x: 84, y: 245, xScale: 26, yScale: 13 },
     "中学生": { x: 84, y: 205, xScale: 26, yScale: 13 },
@@ -359,66 +511,95 @@ function drawPdfText(page, text, options) {
   });
 }
 
+function drawWrappedPdfText(page, text, options) {
+  const {
+    x,
+    y,
+    size,
+    maxWidth,
+    lineHeight,
+    font,
+    color
+  } = options;
+
+  const lines = splitTextByWidth(String(text), font, size, maxWidth);
+
+  lines.forEach((line, index) => {
+    page.drawText(line, {
+      x,
+      y: y - index * lineHeight,
+      size,
+      font,
+      color
+    });
+  });
+}
+
+function drawCenteredWrappedPdfText(page, text, options) {
+  const {
+    centerX,
+    y,
+    size,
+    maxWidth,
+    lineHeight,
+    font,
+    color
+  } = options;
+
+  const lines = splitTextByWidth(String(text), font, size, maxWidth);
+
+  lines.forEach((line, index) => {
+    const lineWidth = font.widthOfTextAtSize(line, size);
+
+    page.drawText(line, {
+      x: centerX - lineWidth / 2,
+      y: y - index * lineHeight,
+      size,
+      font,
+      color
+    });
+  });
+}
+
+function splitTextByWidth(text, font, size, maxWidth) {
+  const lines = [];
+  let currentLine = "";
+
+  for (const char of text) {
+    const testLine = currentLine + char;
+    const width = font.widthOfTextAtSize(testLine, size);
+
+    if (width > maxWidth && currentLine !== "") {
+      lines.push(currentLine);
+      currentLine = char;
+    } else {
+      currentLine = testLine;
+    }
+  }
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines;
+}
+
 function createPdfFileName(userData) {
   const id = String(userData['ID'] || 'output').trim();
-
-  const pdfType = String(userData['受取'] || '').trim();
+  const pdfType = getPdfType(userData);
 
   let typeLabel = pdfType;
 
   if (pdfType === 'one') {
-    typeLabel = '1';
+    typeLabel = 'Lv1';
   } else if (pdfType === 'two') {
-    typeLabel = '2';
+    typeLabel = 'LvMAX';
   } else if (pdfType === 'home') {
     typeLabel = 'home';
   }
 
   return `社研心理テスト2026_${id}_${typeLabel}.pdf`;
 }
-
-  const [pdfBytes, fontBytes] = await Promise.all([
-    fetch(templateUrl).then(res => {
-      if (!res.ok) throw new Error("PDFテンプレートを取得できませんでした。");
-      return res.arrayBuffer();
-    }),
-    fetch(FONT_URL).then(res => {
-      if (!res.ok) throw new Error("フォントを取得できませんでした。");
-      return res.arrayBuffer();
-    })
-  ]);
-
-  const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
-  pdfDoc.registerFontkit(window.fontkit);
-
-  const customFont = await pdfDoc.embedFont(fontBytes);
-  const pages = pdfDoc.getPages();
-
-  if (pdfType === "one") {
-    writeOnePdf(pages, customFont, userData);
-  } else if (pdfType === "two") {
-    // 後でtwo.pdf用の座標を入れる
-    writeOnePdf(pages, customFont, userData);
-  } else if (pdfType === "home") {
-    // 後でhome.pdf用の座標を入れる
-    writeOnePdf(pages, customFont, userData);
-  }
-
-  const pdfBytesOut = await pdfDoc.save();
-  const blob = new Blob([pdfBytesOut], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-
-  try {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = createPdfFileName(userData);
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  } catch {}
-
-  return url;
-}
-  </script>
+</script>
 </body>
 </html>
