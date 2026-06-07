@@ -180,7 +180,7 @@ function issueNumber() {
       }
 
       reject(new Error("番号発行サーバーから応答がありませんでした。通信環境を確認してください。"));
-    }, 15000);
+    }, 30000);
 
     window[callbackName] = function(data) {
       if (finished) return;
